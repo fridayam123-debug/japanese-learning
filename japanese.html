@@ -796,7 +796,10 @@ window.JL.modes.quiz = (function () {
       score: 0,
       finished: false,
       lastResult: null,
-      locked: false
+      locked: false,
+      pendingTimeout: null,
+      cancelled: false,
+      previousHighScore: 0
     };
     render(root);
   }
@@ -833,7 +836,11 @@ window.JL.modes.quiz = (function () {
       </div>
     `;
 
-    document.getElementById('back').addEventListener('click', () => window.JL.router.renderMain());
+    document.getElementById('back').addEventListener('click', () => {
+      if (state.pendingTimeout) { clearTimeout(state.pendingTimeout); state.pendingTimeout = null; }
+      state.cancelled = true;
+      window.JL.router.renderMain();
+    });
 
     root.querySelectorAll('.quiz-choice').forEach(btn => {
       btn.addEventListener('click', () => handleChoice(root, parseInt(btn.dataset.i, 10)));
@@ -860,7 +867,9 @@ window.JL.modes.quiz = (function () {
     fb.textContent = correct ? '✓ 정답!' : `✗ 정답: ${q.answer.meaning} (${q.answer.kana})`;
     fb.className = 'quiz-feedback ' + (correct ? 'correct' : 'wrong');
 
-    setTimeout(() => {
+    state.pendingTimeout = setTimeout(() => {
+      state.pendingTimeout = null;
+      if (state.cancelled) return;
       state.locked = false;
       state.idx++;
       if (state.idx >= state.questions.length) {
@@ -873,6 +882,7 @@ window.JL.modes.quiz = (function () {
 
   function finalizeScore() {
     const progress = window.JL.storage.loadProgress();
+    state.previousHighScore = progress.quizHighScore;
     if (state.score > progress.quizHighScore) {
       window.JL.storage.saveProgress({ quizHighScore: state.score });
     }
@@ -881,8 +891,7 @@ window.JL.modes.quiz = (function () {
   function renderResult(root) {
     const total = state.questions.length;
     const max = total * 10;
-    const progress = window.JL.storage.loadProgress();
-    const newRecord = state.score >= progress.quizHighScore && state.score > 0;
+    const newRecord = state.score > (state.previousHighScore || 0);
 
     root.innerHTML = `
       <span class="back-link" id="back">← 메인으로</span>
@@ -897,7 +906,11 @@ window.JL.modes.quiz = (function () {
       </div>
     `;
 
-    document.getElementById('back').addEventListener('click', () => window.JL.router.renderMain());
+    document.getElementById('back').addEventListener('click', () => {
+      if (state.pendingTimeout) { clearTimeout(state.pendingTimeout); state.pendingTimeout = null; }
+      state.cancelled = true;
+      window.JL.router.renderMain();
+    });
     document.getElementById('again').addEventListener('click', () => mount(root, state.topic));
     document.getElementById('home').addEventListener('click', () => window.JL.router.renderMain());
   }
@@ -912,8 +925,12 @@ window.JL.modes.quiz = (function () {
 window.JL.modes = window.JL.modes || {};
 window.JL.modes.conversation = (function () {
   let state = null;
+  let speakAllTimeouts = [];
 
   function mount(root, topic) {
+    speakAllTimeouts.forEach(id => clearTimeout(id));
+    speakAllTimeouts = [];
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
     state = { topic, sceneIdx: null, showKo: false };
     render(root);
   }
@@ -977,7 +994,12 @@ window.JL.modes.conversation = (function () {
       </div>
     `;
 
-    document.getElementById('back').addEventListener('click', () => window.JL.router.renderMain());
+    document.getElementById('back').addEventListener('click', () => {
+      speakAllTimeouts.forEach(id => clearTimeout(id));
+      speakAllTimeouts = [];
+      if ('speechSynthesis' in window) speechSynthesis.cancel();
+      window.JL.router.renderMain();
+    });
     document.getElementById('scenes').addEventListener('click', () => { state.sceneIdx = null; render(root); });
     document.getElementById('toggleKo').addEventListener('click', () => { state.showKo = !state.showKo; render(root); });
 
@@ -991,8 +1013,11 @@ window.JL.modes.conversation = (function () {
   function speakAll(lines) {
     if (!('speechSynthesis' in window)) return;
     speechSynthesis.cancel();
+    speakAllTimeouts.forEach(id => clearTimeout(id));
+    speakAllTimeouts = [];
     lines.forEach((line, i) => {
-      setTimeout(() => window.JL.tts.speak(line.jp), i * 2400);
+      const id = setTimeout(() => window.JL.tts.speak(line.jp), i * 2400);
+      speakAllTimeouts.push(id);
     });
   }
 
