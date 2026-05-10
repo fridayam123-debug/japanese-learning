@@ -28,7 +28,203 @@
     window.assertEq = assertEq;
   </script>
 
-  <!-- Tests will be added in later tasks via additional <script> blocks -->
+  <!-- ===== UTILS (mirrored) ===== -->
+  <script>
+    window.JL = window.JL || {};
+window.JL.utils = (function () {
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  function pickRandom(arr, count) {
+    return shuffle(arr).slice(0, Math.min(count, arr.length));
+  }
+
+  function escapeHtml(s) {
+    return String(s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  return { shuffle, pickRandom, escapeHtml };
+})();
+  </script>
+
+  <!-- ===== TTS (mirrored) ===== -->
+  <script>
+    window.JL = window.JL || {};
+window.JL.tts = (function () {
+  let jaVoice = null;
+  let voicesLoaded = false;
+
+  function loadVoices() {
+    if (!('speechSynthesis' in window)) return;
+    const voices = speechSynthesis.getVoices();
+    jaVoice = voices.find(v => v.lang && v.lang.toLowerCase().startsWith('ja')) || null;
+    if (voices.length > 0) voicesLoaded = true;
+  }
+
+  if ('speechSynthesis' in window) {
+    loadVoices();
+    speechSynthesis.onvoiceschanged = loadVoices;
+  }
+
+  function isAvailable() {
+    return 'speechSynthesis' in window && (jaVoice !== null || !voicesLoaded);
+  }
+
+  function speak(text) {
+    if (!text || !('speechSynthesis' in window)) return;
+    try {
+      speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ja-JP';
+      if (jaVoice) u.voice = jaVoice;
+      u.rate = 0.9;
+      u.pitch = 1.0;
+      speechSynthesis.speak(u);
+    } catch (e) {
+      console.warn('TTS error:', e);
+    }
+  }
+
+  return { speak, isAvailable };
+})();
+  </script>
+
+  <!-- ===== STORAGE (mirrored) ===== -->
+  <script>
+    window.JL = window.JL || {};
+window.JL.storage = (function () {
+  let KEY = 'jp.progress';
+  const DEFAULTS = {
+    flashcardsViewed: 0,
+    quizHighScore: 0,
+    lastStudied: null,
+    selectedTopic: 'school'
+  };
+
+  function loadProgress() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) return { ...DEFAULTS };
+      return { ...DEFAULTS, ...JSON.parse(raw) };
+    } catch (e) {
+      return { ...DEFAULTS };
+    }
+  }
+
+  function saveProgress(partial) {
+    try {
+      const current = loadProgress();
+      const next = { ...current, ...partial, lastStudied: new Date().toISOString().slice(0, 10) };
+      localStorage.setItem(KEY, JSON.stringify(next));
+      return next;
+    } catch (e) {
+      console.warn('Storage save error:', e);
+      return loadProgress();
+    }
+  }
+
+  function bumpStat(field, delta) {
+    const d = typeof delta === 'number' ? delta : 1;
+    const current = loadProgress();
+    const updated = { [field]: (current[field] || 0) + d };
+    return saveProgress(updated);
+  }
+
+  function _setKey(k) { KEY = k; } // for tests
+
+  return { loadProgress, saveProgress, bumpStat, _setKey };
+})();
+  </script>
+
+  <!-- ===== Unit Tests ===== -->
+  <script>
+  // ========== UTILS tests ==========
+  test('shuffle: returns array of same length', () => {
+    const a = [1, 2, 3, 4, 5];
+    const b = window.JL.utils.shuffle(a);
+    assertEq(b.length, a.length);
+  });
+
+  test('shuffle: contains same elements', () => {
+    const a = [1, 2, 3, 4, 5];
+    const b = window.JL.utils.shuffle(a).slice().sort();
+    assertEq(b, [1, 2, 3, 4, 5]);
+  });
+
+  test('shuffle: does not mutate input', () => {
+    const a = [1, 2, 3, 4, 5];
+    window.JL.utils.shuffle(a);
+    assertEq(a, [1, 2, 3, 4, 5]);
+  });
+
+  test('pickRandom: count <= length returns count items', () => {
+    const r = window.JL.utils.pickRandom([1, 2, 3, 4, 5], 3);
+    assertEq(r.length, 3);
+  });
+
+  test('pickRandom: count > length returns all items', () => {
+    const r = window.JL.utils.pickRandom([1, 2], 5);
+    assertEq(r.length, 2);
+  });
+
+  test('escapeHtml: escapes special chars', () => {
+    assertEq(window.JL.utils.escapeHtml('<a&b>'), '&lt;a&amp;b&gt;');
+  });
+
+  // ========== STORAGE tests ==========
+  test('storage: round-trip save/load', () => {
+    localStorage.removeItem('jp.test_progress');
+    window.JL.storage._setKey('jp.test_progress');
+    window.JL.storage.saveProgress({ flashcardsViewed: 5, quizHighScore: 80 });
+    const p = window.JL.storage.loadProgress();
+    assertEq(p.flashcardsViewed, 5);
+    assertEq(p.quizHighScore, 80);
+    localStorage.removeItem('jp.test_progress');
+    window.JL.storage._setKey('jp.progress');
+  });
+
+  test('storage: load returns defaults when empty', () => {
+    localStorage.removeItem('jp.test_progress2');
+    window.JL.storage._setKey('jp.test_progress2');
+    const p = window.JL.storage.loadProgress();
+    assertEq(p.flashcardsViewed, 0);
+    assertEq(p.quizHighScore, 0);
+    localStorage.removeItem('jp.test_progress2');
+    window.JL.storage._setKey('jp.progress');
+  });
+
+  test('storage: bumpStat increments counter', () => {
+    localStorage.removeItem('jp.test_bump');
+    window.JL.storage._setKey('jp.test_bump');
+    window.JL.storage.bumpStat('flashcardsViewed');
+    window.JL.storage.bumpStat('flashcardsViewed');
+    const p = window.JL.storage.loadProgress();
+    assertEq(p.flashcardsViewed, 2);
+    localStorage.removeItem('jp.test_bump');
+    window.JL.storage._setKey('jp.progress');
+  });
+
+  // ========== TTS tests ==========
+  test('TTS: speak does not throw with empty string', () => {
+    window.JL.tts.speak('');
+  });
+
+  test('TTS: isAvailable returns boolean', () => {
+    const v = window.JL.tts.isAvailable();
+    assert(typeof v === 'boolean');
+  });
+  </script>
 
   <script>
     window.addEventListener('load', () => {
