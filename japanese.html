@@ -511,7 +511,7 @@ window.JL.router = (function () {
   }
 
   function getTopicData() {
-    return DATA.findTopic(currentTopic);
+    return DATA.findTopic(currentTopic) || DATA.topics[0];
   }
 
   function renderMain() {
