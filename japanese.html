@@ -147,6 +147,41 @@ header.app-header h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
   .quiz-choices { grid-template-columns: 1fr; }
   .quiz-question .target { font-size: 36px; }
 }
+
+.conv-screen { max-width: 700px; margin: 0 auto; }
+.conv-scenes { display: grid; grid-template-columns: 1fr; gap: 12px; }
+.conv-scene-card {
+  background: var(--soft); border: 1.5px solid var(--border); border-radius: 12px;
+  padding: 20px 24px; cursor: pointer; font-size: 18px; transition: all .12s;
+}
+.conv-scene-card:hover { border-color: var(--accent); background: #fff; }
+
+.conv-scene-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.conv-scene-header h3 { margin: 0; font-size: 20px; }
+
+.conv-line {
+  background: #fff; border: 1.5px solid var(--border); border-radius: 12px;
+  padding: 20px 24px; margin-bottom: 12px; display: flex; gap: 16px; align-items: flex-start;
+}
+.conv-line .body { flex: 1; }
+.conv-line .jp { font-size: 22px; line-height: 1.5; }
+.conv-line .ko { font-size: 16px; color: var(--muted); margin-top: 8px; }
+.conv-line.hidden-ko .ko { display: none; }
+.conv-line .speak-btn {
+  appearance: none; border: 1.5px solid var(--border); background: #fff;
+  width: 48px; height: 48px; border-radius: 50%; cursor: pointer; font-size: 20px; flex-shrink: 0;
+}
+
+.conv-controls { display: flex; gap: 12px; align-items: center; justify-content: space-between; margin-top: 16px; }
+.conv-toggle {
+  appearance: none; border: 1.5px solid var(--border); background: #fff; padding: 10px 16px;
+  border-radius: 12px; cursor: pointer; font-size: 14px; min-height: 44px;
+}
+.conv-toggle.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+@media (max-width: 600px) {
+  .conv-line .jp { font-size: 18px; }
+}
   </style>
 </head>
 <body>
@@ -861,7 +896,96 @@ window.JL.modes.quiz = (function () {
 
   <!-- ===== MODE: CONVERSATION ===== -->
   <script id="MODE_CONVERSATION">
-    // filled in Task 7
+    window.JL = window.JL || {};
+window.JL.modes = window.JL.modes || {};
+window.JL.modes.conversation = (function () {
+  let state = null;
+
+  function mount(root, topic) {
+    state = { topic, sceneIdx: null, showKo: false };
+    render(root);
+  }
+
+  function render(root) {
+    const u = window.JL.utils;
+    if (state.sceneIdx === null) return renderSceneList(root, u);
+    return renderScene(root, u);
+  }
+
+  function renderSceneList(root, u) {
+    const t = state.topic;
+    const scenes = t.dialogues || [];
+    const cards = scenes.map((d, i) =>
+      `<div class="conv-scene-card" data-i="${i}">${u.escapeHtml(d.scene)}</div>`
+    ).join('');
+
+    root.innerHTML = `
+      <span class="back-link" id="back">← 메인으로</span>
+      <div class="conv-screen">
+        <div class="conv-scene-header"><h3>${u.escapeHtml(t.name)} 회화 — 상황 선택</h3></div>
+        <div class="conv-scenes">${cards || '<div class="conv-scene-card">이 주제에는 회화가 없어요.</div>'}</div>
+      </div>
+    `;
+
+    document.getElementById('back').addEventListener('click', () => window.JL.router.renderMain());
+    root.querySelectorAll('.conv-scene-card[data-i]').forEach(el => {
+      el.addEventListener('click', () => {
+        state.sceneIdx = parseInt(el.dataset.i, 10);
+        render(root);
+      });
+    });
+  }
+
+  function renderScene(root, u) {
+    const t = state.topic;
+    const scene = t.dialogues[state.sceneIdx];
+
+    const lines = scene.lines.map(line => `
+      <div class="conv-line ${state.showKo ? '' : 'hidden-ko'}">
+        <button class="speak-btn" data-text="${u.escapeHtml(line.jp)}" aria-label="발음">🔊</button>
+        <div class="body">
+          <div class="jp jp-text">${u.escapeHtml(line.jp)}</div>
+          <div class="ko">${u.escapeHtml(line.ko)}</div>
+        </div>
+      </div>
+    `).join('');
+
+    root.innerHTML = `
+      <span class="back-link" id="back">← 메인으로</span>
+      <div class="conv-screen">
+        <div class="conv-scene-header">
+          <h3>${u.escapeHtml(scene.scene)}</h3>
+          <button class="btn" id="scenes">상황 다시 고르기</button>
+        </div>
+        ${lines}
+        <div class="conv-controls">
+          <button class="conv-toggle ${state.showKo ? 'active' : ''}" id="toggleKo">${state.showKo ? '한국어 끄기' : '한국어 보기'}</button>
+          <button class="btn btn-primary" id="speakAll">전체 듣기</button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('back').addEventListener('click', () => window.JL.router.renderMain());
+    document.getElementById('scenes').addEventListener('click', () => { state.sceneIdx = null; render(root); });
+    document.getElementById('toggleKo').addEventListener('click', () => { state.showKo = !state.showKo; render(root); });
+
+    root.querySelectorAll('.speak-btn').forEach(b => {
+      b.addEventListener('click', () => window.JL.tts.speak(b.dataset.text));
+    });
+
+    document.getElementById('speakAll').addEventListener('click', () => speakAll(scene.lines));
+  }
+
+  function speakAll(lines) {
+    if (!('speechSynthesis' in window)) return;
+    speechSynthesis.cancel();
+    lines.forEach((line, i) => {
+      setTimeout(() => window.JL.tts.speak(line.jp), i * 2400);
+    });
+  }
+
+  return { mount };
+})();
   </script>
 
   <!-- ===== MAIN ===== -->
