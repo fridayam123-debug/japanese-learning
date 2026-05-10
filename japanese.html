@@ -5,9 +5,79 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
   <title>일본어 학습</title>
   <style>
-    /* CSS will be added in later tasks */
     *, *::before, *::after { box-sizing: border-box; }
-    body { margin: 0; font-family: -apple-system, "Segoe UI", "Noto Sans KR", sans-serif; background: #fff; color: #1a1a1a; }
+
+:root {
+  --bg: #ffffff;
+  --fg: #1a1a1a;
+  --muted: #6b6b6b;
+  --accent: #7BAFD4;
+  --accent-dark: #5b8eb1;
+  --border: #e5e5e5;
+  --soft: #f7f9fb;
+  --success: #2a8a2a;
+  --error: #c4453d;
+  --radius: 16px;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, "Segoe UI", "Noto Sans KR", sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  -webkit-font-smoothing: antialiased;
+}
+
+#app { min-height: 100vh; max-width: 960px; margin: 0 auto; padding: 24px; }
+
+.jp-text { font-family: "Hiragino Mincho ProN", "Yu Mincho", "Meiryo", "MS Gothic", serif; }
+
+header.app-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding-bottom: 16px; border-bottom: 1px solid var(--border); margin-bottom: 24px;
+}
+header.app-header h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
+
+.topic-select {
+  font-size: 18px; padding: 12px 16px; border: 1.5px solid var(--border);
+  border-radius: 12px; background: #fff; min-height: 48px;
+}
+
+.mode-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin: 24px 0;
+}
+.mode-card {
+  background: var(--soft); border: 1.5px solid var(--border); border-radius: var(--radius);
+  padding: 32px 16px; text-align: center; cursor: pointer; transition: transform .12s, border-color .12s, background .12s;
+  min-height: 140px; display: flex; flex-direction: column; justify-content: center; gap: 8px;
+}
+.mode-card:hover, .mode-card:active {
+  border-color: var(--accent); background: #fff; transform: translateY(-2px);
+}
+.mode-card .label { font-size: 22px; font-weight: 600; }
+.mode-card .desc { font-size: 14px; color: var(--muted); }
+
+.stats { display: flex; gap: 24px; padding: 16px; background: var(--soft); border-radius: var(--radius); }
+.stats .stat { font-size: 15px; color: var(--muted); }
+.stats .stat strong { color: var(--fg); font-size: 18px; margin-left: 8px; }
+
+.btn {
+  appearance: none; border: 1.5px solid var(--border); background: #fff; color: var(--fg);
+  padding: 12px 20px; font-size: 16px; border-radius: 12px; cursor: pointer;
+  min-height: 48px; min-width: 64px; transition: all .12s;
+}
+.btn:hover, .btn:active { border-color: var(--accent); }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: var(--accent-dark); border-color: var(--accent-dark); }
+
+.back-link { display: inline-block; margin-bottom: 16px; color: var(--muted); cursor: pointer; font-size: 15px; }
+.back-link:hover { color: var(--fg); }
+
+@media (max-width: 600px) {
+  .mode-grid { grid-template-columns: 1fr; }
+  header.app-header { flex-direction: column; align-items: stretch; gap: 12px; }
+}
   </style>
 </head>
 <body>
@@ -419,7 +489,77 @@ window.JL.storage = (function () {
 
   <!-- ===== ROUTER ===== -->
   <script id="ROUTER">
-    // filled in Task 4
+    window.JL = window.JL || {};
+window.JL.router = (function () {
+  let currentTopic = null;
+  let currentMode = null;
+
+  function getTopic() { return currentTopic; }
+  function setTopic(id) {
+    currentTopic = id;
+    window.JL.storage.saveProgress({ selectedTopic: id });
+    if (currentMode === 'main') renderMain();
+  }
+
+  function show(modeName) {
+    currentMode = modeName;
+    const root = document.getElementById('app');
+    if (modeName === 'main') return renderMain();
+    if (modeName === 'flashcard') return window.JL.modes.flashcard.mount(root, getTopicData());
+    if (modeName === 'quiz') return window.JL.modes.quiz.mount(root, getTopicData());
+    if (modeName === 'conversation') return window.JL.modes.conversation.mount(root, getTopicData());
+  }
+
+  function getTopicData() {
+    return DATA.findTopic(currentTopic);
+  }
+
+  function renderMain() {
+    currentMode = 'main';
+    const root = document.getElementById('app');
+    const progress = window.JL.storage.loadProgress();
+    const u = window.JL.utils;
+
+    const topicOptions = DATA.topics.map(t =>
+      `<option value="${u.escapeHtml(t.id)}"${t.id === currentTopic ? ' selected' : ''}>${u.escapeHtml(t.name)}</option>`
+    ).join('');
+
+    root.innerHTML = `
+      <header class="app-header">
+        <h1>일본어 학습</h1>
+        <select class="topic-select" id="topicSelect">${topicOptions}</select>
+      </header>
+
+      <div class="mode-grid">
+        <div class="mode-card" data-mode="flashcard">
+          <div class="label">플래시카드</div>
+          <div class="desc">단어와 예문을 카드로 익히기</div>
+        </div>
+        <div class="mode-card" data-mode="quiz">
+          <div class="label">퀴즈</div>
+          <div class="desc">4지선다 10문제로 점검</div>
+        </div>
+        <div class="mode-card" data-mode="conversation">
+          <div class="label">회화</div>
+          <div class="desc">상황별 대화 따라하기</div>
+        </div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">학습한 카드 <strong>${progress.flashcardsViewed}</strong></div>
+        <div class="stat">퀴즈 최고점 <strong>${progress.quizHighScore}</strong></div>
+        <div class="stat">마지막 학습 <strong>${progress.lastStudied || '-'}</strong></div>
+      </div>
+    `;
+
+    document.getElementById('topicSelect').addEventListener('change', e => setTopic(e.target.value));
+    root.querySelectorAll('.mode-card').forEach(el => {
+      el.addEventListener('click', () => show(el.dataset.mode));
+    });
+  }
+
+  return { show, getTopic, setTopic, renderMain };
+})();
   </script>
 
   <!-- ===== MODE: FLASHCARD ===== -->
@@ -439,7 +579,28 @@ window.JL.storage = (function () {
 
   <!-- ===== MAIN ===== -->
   <script id="MAIN">
-    document.getElementById('app').textContent = '초기화 대기 중';
+    (function init() {
+  window.JL = window.JL || {};
+  window.JL.modes = window.JL.modes || {};
+  // Stub modes so renderMain doesn't crash before Tasks 5-7 fill them in
+  ['flashcard', 'quiz', 'conversation'].forEach(name => {
+    if (!window.JL.modes[name]) {
+      window.JL.modes[name] = {
+        mount(root) {
+          root.innerHTML = `
+            <span class="back-link" id="back">← 메인으로</span>
+            <h2>${name} 모드 준비 중...</h2>
+          `;
+          document.getElementById('back').addEventListener('click', () => window.JL.router.renderMain());
+        }
+      };
+    }
+  });
+
+  const progress = window.JL.storage.loadProgress();
+  window.JL.router.setTopic(progress.selectedTopic || 'school');
+  window.JL.router.show('main');
+})();
   </script>
 </body>
 </html>
