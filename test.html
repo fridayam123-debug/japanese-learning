@@ -109,7 +109,8 @@ window.JL.storage = (function () {
     flashcardsViewed: 0,
     quizHighScore: 0,
     lastStudied: null,
-    selectedTopic: 'school'
+    selectedTopic: 'school',
+    wordStats: {}
   };
 
   function loadProgress() {
@@ -141,9 +142,43 @@ window.JL.storage = (function () {
     return saveProgress(updated);
   }
 
+  function recordWordResult(topicId, kana, correct) {
+    const today = new Date().toISOString().slice(0, 10);
+    const current = loadProgress();
+    const key = topicId + ':' + kana;
+    const stats = current.wordStats || {};
+    const stat = stats[key] || { correctDays: [], wrongCount: 0 };
+    if (correct) {
+      if (!stat.correctDays.includes(today)) stat.correctDays.push(today);
+    } else {
+      stat.wrongCount = (stat.wrongCount || 0) + 1;
+    }
+    stats[key] = stat;
+    return saveProgress({ wordStats: stats });
+  }
+
+  function getMasteryStatus(topicId, kana) {
+    const current = loadProgress();
+    const stat = (current.wordStats || {})[topicId + ':' + kana];
+    if (!stat) return 'new';
+    if ((stat.correctDays || []).length >= 2) return 'mastered';
+    return 'learning';
+  }
+
+  function getTopicProgress(topicId, words) {
+    const current = loadProgress();
+    const stats = current.wordStats || {};
+    let mastered = 0;
+    for (const w of words) {
+      const stat = stats[topicId + ':' + w.kana];
+      if (stat && (stat.correctDays || []).length >= 2) mastered++;
+    }
+    return { mastered, total: words.length };
+  }
+
   function _setKey(k) { KEY = k; } // for tests
 
-  return { loadProgress, saveProgress, bumpStat, _setKey };
+  return { loadProgress, saveProgress, bumpStat, recordWordResult, getMasteryStatus, getTopicProgress, _setKey };
 })();
   </script>
 
@@ -406,6 +441,68 @@ window.JL.modes.quiz = (function () {
     for (const q of qs) {
       assertEq(q.choices.length, Math.min(4, 5));
     }
+  });
+
+  // ========== MASTERY tests ==========
+  test('mastery: new word returns "new"', () => {
+    localStorage.removeItem('jp.test_mastery1');
+    window.JL.storage._setKey('jp.test_mastery1');
+    assertEq(window.JL.storage.getMasteryStatus('school', 'がっこう'), 'new');
+    localStorage.removeItem('jp.test_mastery1');
+    window.JL.storage._setKey('jp.progress');
+  });
+
+  test('mastery: 1 correct = learning, 2 distinct days = mastered', () => {
+    localStorage.removeItem('jp.test_mastery2');
+    window.JL.storage._setKey('jp.test_mastery2');
+    window.JL.storage.recordWordResult('school', 'がっこう', true);
+    assertEq(window.JL.storage.getMasteryStatus('school', 'がっこう'), 'learning');
+    const p = window.JL.storage.loadProgress();
+    p.wordStats['school:がっこう'].correctDays.push('2099-01-01');
+    localStorage.setItem('jp.test_mastery2', JSON.stringify(p));
+    assertEq(window.JL.storage.getMasteryStatus('school', 'がっこう'), 'mastered');
+    localStorage.removeItem('jp.test_mastery2');
+    window.JL.storage._setKey('jp.progress');
+  });
+
+  test('mastery: same-day correct does not double-count', () => {
+    localStorage.removeItem('jp.test_mastery3');
+    window.JL.storage._setKey('jp.test_mastery3');
+    window.JL.storage.recordWordResult('school', 'ほん', true);
+    window.JL.storage.recordWordResult('school', 'ほん', true);
+    const p = window.JL.storage.loadProgress();
+    assertEq(p.wordStats['school:ほん'].correctDays.length, 1);
+    localStorage.removeItem('jp.test_mastery3');
+    window.JL.storage._setKey('jp.progress');
+  });
+
+  test('mastery: wrong increments wrongCount', () => {
+    localStorage.removeItem('jp.test_mastery4');
+    window.JL.storage._setKey('jp.test_mastery4');
+    window.JL.storage.recordWordResult('school', 'ほん', false);
+    window.JL.storage.recordWordResult('school', 'ほん', false);
+    const p = window.JL.storage.loadProgress();
+    assertEq(p.wordStats['school:ほん'].wrongCount, 2);
+    localStorage.removeItem('jp.test_mastery4');
+    window.JL.storage._setKey('jp.progress');
+  });
+
+  test('mastery: getTopicProgress counts mastered', () => {
+    localStorage.removeItem('jp.test_mastery5');
+    window.JL.storage._setKey('jp.test_mastery5');
+    const p = window.JL.storage.loadProgress();
+    p.wordStats = {
+      'food:ごはん': { correctDays: ['2026-01-01', '2026-01-02'], wrongCount: 0 },
+      'food:パン': { correctDays: ['2026-01-01'], wrongCount: 0 }
+    };
+    localStorage.setItem('jp.test_mastery5', JSON.stringify(p));
+    const result = window.JL.storage.getTopicProgress('food', [
+      { kana: 'ごはん' }, { kana: 'パン' }, { kana: 'みず' }
+    ]);
+    assertEq(result.mastered, 1);
+    assertEq(result.total, 3);
+    localStorage.removeItem('jp.test_mastery5');
+    window.JL.storage._setKey('jp.progress');
   });
   </script>
 
