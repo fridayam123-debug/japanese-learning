@@ -78,6 +78,38 @@ header.app-header h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
   .mode-grid { grid-template-columns: 1fr; }
   header.app-header { flex-direction: column; align-items: stretch; gap: 12px; }
 }
+
+.flashcard-screen { display: flex; flex-direction: column; align-items: center; gap: 16px; }
+.flashcard-screen .topic-name { font-size: 16px; color: var(--muted); }
+
+.flashcard {
+  width: 100%; max-width: 600px; min-height: 360px;
+  background: #fff; border: 1.5px solid var(--border); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 40px 32px; cursor: pointer;
+  display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 16px;
+  user-select: none; transition: transform .15s, border-color .15s;
+}
+.flashcard:active { transform: scale(0.99); border-color: var(--accent); }
+.flashcard .kanji { font-size: 24px; color: var(--muted); }
+.flashcard .kana { font-size: 56px; font-weight: 500; letter-spacing: 0.02em; }
+.flashcard .meaning { font-size: 32px; color: var(--accent-dark); font-weight: 600; }
+.flashcard .example-jp { font-size: 22px; text-align: center; }
+.flashcard .example-ko { font-size: 16px; color: var(--muted); }
+.flashcard .speak-btn {
+  appearance: none; border: 1.5px solid var(--border); background: #fff;
+  width: 56px; height: 56px; border-radius: 50%; cursor: pointer; font-size: 22px;
+}
+.flashcard .speak-btn:active { background: var(--soft); }
+.flashcard-hint { font-size: 13px; color: var(--muted); }
+
+.flashcard-nav { display: flex; gap: 12px; align-items: center; margin-top: 8px; }
+.flashcard-progress { font-size: 16px; color: var(--muted); min-width: 80px; text-align: center; }
+
+@media (max-width: 600px) {
+  .flashcard .kana { font-size: 44px; }
+  .flashcard .meaning { font-size: 26px; }
+  .flashcard .example-jp { font-size: 18px; }
+}
   </style>
 </head>
 <body>
@@ -564,7 +596,89 @@ window.JL.router = (function () {
 
   <!-- ===== MODE: FLASHCARD ===== -->
   <script id="MODE_FLASHCARD">
-    // filled in Task 5
+    window.JL = window.JL || {};
+window.JL.modes = window.JL.modes || {};
+window.JL.modes.flashcard = (function () {
+  let state = { topic: null, idx: 0, flipped: false };
+
+  function mount(root, topic) {
+    state = { topic, idx: 0, flipped: false };
+    render(root);
+  }
+
+  function render(root) {
+    const t = state.topic;
+    const w = t.words[state.idx];
+    const u = window.JL.utils;
+    const total = t.words.length;
+
+    root.innerHTML = `
+      <span class="back-link" id="back">← 메인으로</span>
+      <div class="flashcard-screen">
+        <div class="topic-name">${u.escapeHtml(t.name)} · ${state.idx + 1} / ${total}</div>
+        <div class="flashcard" id="card">
+          ${state.flipped ? renderBack(w, u) : renderFront(w, u)}
+        </div>
+        <div class="flashcard-hint">${state.flipped ? '카드를 다시 누르면 앞면' : '카드를 누르면 뜻이 보여요'}</div>
+        <div class="flashcard-nav">
+          <button class="btn" id="prev">← 이전</button>
+          <div class="flashcard-progress">${state.idx + 1} / ${total}</div>
+          <button class="btn btn-primary" id="next">다음 →</button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('back').addEventListener('click', () => window.JL.router.renderMain());
+
+    document.getElementById('card').addEventListener('click', e => {
+      if (e.target.closest('.speak-btn')) return;
+      state.flipped = !state.flipped;
+      render(root);
+    });
+
+    root.querySelectorAll('.speak-btn').forEach(b => {
+      b.addEventListener('click', e => {
+        e.stopPropagation();
+        window.JL.tts.speak(b.dataset.text);
+      });
+    });
+
+    document.getElementById('prev').addEventListener('click', e => {
+      e.stopPropagation();
+      state.idx = (state.idx - 1 + total) % total;
+      state.flipped = false;
+      render(root);
+    });
+
+    document.getElementById('next').addEventListener('click', e => {
+      e.stopPropagation();
+      window.JL.storage.bumpStat('flashcardsViewed');
+      state.idx = (state.idx + 1) % total;
+      state.flipped = false;
+      render(root);
+    });
+  }
+
+  function renderFront(w, u) {
+    const kanjiLine = w.kanji ? `<div class="kanji">${u.escapeHtml(w.kanji)}</div>` : '';
+    return `
+      ${kanjiLine}
+      <div class="kana jp-text">${u.escapeHtml(w.kana)}</div>
+      <button class="speak-btn" data-text="${u.escapeHtml(w.kana)}" aria-label="발음 듣기">🔊</button>
+    `;
+  }
+
+  function renderBack(w, u) {
+    return `
+      <div class="meaning">${u.escapeHtml(w.meaning)}</div>
+      <div class="example-jp jp-text">${u.escapeHtml(w.example.jp)}</div>
+      <div class="example-ko">${u.escapeHtml(w.example.ko)}</div>
+      <button class="speak-btn" data-text="${u.escapeHtml(w.example.jp)}" aria-label="예문 발음">🔊</button>
+    `;
+  }
+
+  return { mount };
+})();
   </script>
 
   <!-- ===== MODE: QUIZ ===== -->
