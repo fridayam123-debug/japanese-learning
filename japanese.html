@@ -182,6 +182,18 @@ header.app-header h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
 @media (max-width: 600px) {
   .conv-line .jp { font-size: 18px; }
 }
+
+button:focus-visible, .mode-card:focus-visible, .topic-select:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px;
+}
+
+.mode-card:focus { outline: none; }
+
+button { touch-action: manipulation; }
+.mode-card { touch-action: manipulation; }
+
+/* Prevent body scroll bounce on tablet */
+html, body { overscroll-behavior: contain; }
   </style>
 </head>
 <body>
@@ -993,24 +1005,26 @@ window.JL.modes.conversation = (function () {
     (function init() {
   window.JL = window.JL || {};
   window.JL.modes = window.JL.modes || {};
-  // Stub modes so renderMain doesn't crash before Tasks 5-7 fill them in
-  ['flashcard', 'quiz', 'conversation'].forEach(name => {
-    if (!window.JL.modes[name]) {
-      window.JL.modes[name] = {
-        mount(root) {
-          root.innerHTML = `
-            <span class="back-link" id="back">← 메인으로</span>
-            <h2>${name} 모드 준비 중...</h2>
-          `;
-          document.getElementById('back').addEventListener('click', () => window.JL.router.renderMain());
-        }
-      };
-    }
-  });
 
   const progress = window.JL.storage.loadProgress();
   window.JL.router.setTopic(progress.selectedTopic || 'school');
   window.JL.router.show('main');
+
+  // Show TTS unavailability notice once after voices have a chance to load
+  setTimeout(() => {
+    if ('speechSynthesis' in window) {
+      const voices = speechSynthesis.getVoices();
+      const hasJa = voices.some(v => v.lang && v.lang.toLowerCase().startsWith('ja'));
+      if (!hasJa && !sessionStorage.getItem('jl.notts_notified')) {
+        sessionStorage.setItem('jl.notts_notified', '1');
+        const notice = document.createElement('div');
+        notice.style.cssText = 'position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#fff;border:1.5px solid #e5e5e5;border-radius:12px;padding:12px 20px;font-size:14px;color:#666;box-shadow:0 4px 16px rgba(0,0,0,0.08);z-index:9999;max-width:90%;';
+        notice.textContent = '⚠ 일본어 음성이 설치되어 있지 않아 발음이 제한될 수 있어요.';
+        document.body.appendChild(notice);
+        setTimeout(() => notice.remove(), 5000);
+      }
+    }
+  }, 800);
 })();
   </script>
 </body>
