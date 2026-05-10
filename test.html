@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <title>일본어 학습 - 테스트</title>
+  <style>
+    body { font-family: monospace; padding: 20px; }
+    .pass { color: #2a8a2a; }
+    .fail { color: #c33; font-weight: bold; }
+    .summary { padding: 12px; margin-top: 16px; background: #f5f5f5; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>테스트 결과</h1>
+  <div id="results"></div>
+  <div id="summary" class="summary"></div>
+
+  <script>
+    const tests = [];
+    function test(name, fn) { tests.push({ name, fn }); }
+    function assert(cond, msg) { if (!cond) throw new Error(msg || 'assertion failed'); }
+    function assertEq(a, b, msg) {
+      const sa = JSON.stringify(a), sb = JSON.stringify(b);
+      if (sa !== sb) throw new Error(`${msg || 'assertEq'}: ${sa} !== ${sb}`);
+    }
+    window.test = test;
+    window.assert = assert;
+    window.assertEq = assertEq;
+  </script>
+
+  <!-- Tests will be added in later tasks via additional <script> blocks -->
+
+  <script>
+    window.addEventListener('load', () => {
+      const results = document.getElementById('results');
+      let passed = 0, failed = 0;
+      for (const t of tests) {
+        const div = document.createElement('div');
+        try { t.fn(); div.className = 'pass'; div.textContent = `✓ ${t.name}`; passed++; }
+        catch (e) { div.className = 'fail'; div.textContent = `✗ ${t.name} — ${e.message}`; failed++; }
+        results.appendChild(div);
+      }
+      document.getElementById('summary').textContent = `통과 ${passed} / 실패 ${failed} / 총 ${tests.length}`;
+    });
+  </script>
+</body>
+</html>
