@@ -110,6 +110,43 @@ header.app-header h1 { font-size: 22px; margin: 0; letter-spacing: -0.01em; }
   .flashcard .meaning { font-size: 26px; }
   .flashcard .example-jp { font-size: 18px; }
 }
+
+.quiz-screen { max-width: 600px; margin: 0 auto; }
+.quiz-progress {
+  display: flex; justify-content: space-between; font-size: 16px; color: var(--muted); margin-bottom: 16px;
+}
+.quiz-question {
+  background: var(--soft); border-radius: var(--radius); padding: 32px 24px;
+  text-align: center; margin-bottom: 24px;
+}
+.quiz-question .prompt { font-size: 18px; color: var(--muted); margin-bottom: 12px; }
+.quiz-question .target { font-size: 48px; font-weight: 500; }
+.quiz-question .target.jp { font-family: "Hiragino Mincho ProN", "Yu Mincho", "Meiryo", serif; }
+
+.quiz-choices { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.quiz-choice {
+  appearance: none; border: 1.5px solid var(--border); background: #fff; color: var(--fg);
+  padding: 18px 16px; font-size: 18px; border-radius: 12px; cursor: pointer; min-height: 64px;
+  transition: all .12s;
+}
+.quiz-choice:hover { border-color: var(--accent); }
+.quiz-choice.correct { background: #e6f4e6; border-color: var(--success); color: var(--success); }
+.quiz-choice.wrong { background: #fbebea; border-color: var(--error); color: var(--error); }
+.quiz-choice.disabled { opacity: 0.6; cursor: default; }
+
+.quiz-feedback { text-align: center; margin: 16px 0; font-size: 18px; min-height: 28px; }
+.quiz-feedback.correct { color: var(--success); }
+.quiz-feedback.wrong { color: var(--error); }
+
+.quiz-result { text-align: center; padding: 40px 16px; }
+.quiz-result .score { font-size: 56px; font-weight: 600; color: var(--accent-dark); margin: 16px 0; }
+.quiz-result .label { font-size: 18px; color: var(--muted); }
+.quiz-result .actions { display: flex; gap: 12px; justify-content: center; margin-top: 24px; }
+
+@media (max-width: 600px) {
+  .quiz-choices { grid-template-columns: 1fr; }
+  .quiz-question .target { font-size: 36px; }
+}
   </style>
 </head>
 <body>
@@ -683,7 +720,143 @@ window.JL.modes.flashcard = (function () {
 
   <!-- ===== MODE: QUIZ ===== -->
   <script id="MODE_QUIZ">
-    // filled in Task 6
+    window.JL = window.JL || {};
+window.JL.modes = window.JL.modes || {};
+window.JL.modes.quiz = (function () {
+  const QUESTION_COUNT = 10;
+  let state = null;
+
+  function buildQuestions(topic) {
+    const words = topic.words;
+    if (words.length === 0) return [];
+    const u = window.JL.utils;
+    const targets = u.pickRandom(words, Math.min(QUESTION_COUNT, words.length));
+    return targets.map(answer => {
+      const wrongPool = words.filter(w => w.meaning !== answer.meaning);
+      const distractorCount = Math.min(3, wrongPool.length);
+      const wrongs = u.pickRandom(wrongPool, distractorCount);
+      const choices = u.shuffle([answer, ...wrongs]);
+      const direction = Math.random() < 0.5 ? 'jp_to_ko' : 'ko_to_jp';
+      return { answer, choices, direction };
+    });
+  }
+
+  function mount(root, topic) {
+    state = {
+      topic,
+      questions: buildQuestions(topic),
+      idx: 0,
+      score: 0,
+      finished: false,
+      lastResult: null,
+      locked: false
+    };
+    render(root);
+  }
+
+  function render(root) {
+    if (state.finished) return renderResult(root);
+    const u = window.JL.utils;
+    const q = state.questions[state.idx];
+    const total = state.questions.length;
+
+    const promptText = q.direction === 'jp_to_ko' ? '뜻은?' : '일본어로?';
+    const targetText = q.direction === 'jp_to_ko' ? q.answer.kana : q.answer.meaning;
+    const targetClass = q.direction === 'jp_to_ko' ? 'target jp jp-text' : 'target';
+
+    const choicesHtml = q.choices.map((c, i) => {
+      const text = q.direction === 'jp_to_ko' ? c.meaning : c.kana;
+      const cls = q.direction === 'ko_to_jp' ? 'quiz-choice jp-text' : 'quiz-choice';
+      return `<button class="${cls}" data-i="${i}">${u.escapeHtml(text)}</button>`;
+    }).join('');
+
+    root.innerHTML = `
+      <span class="back-link" id="back">← 메인으로</span>
+      <div class="quiz-screen">
+        <div class="quiz-progress">
+          <div>${state.idx + 1} / ${total}</div>
+          <div>점수: ${state.score}</div>
+        </div>
+        <div class="quiz-question">
+          <div class="prompt">${promptText}</div>
+          <div class="${targetClass}">${u.escapeHtml(targetText)}</div>
+        </div>
+        <div class="quiz-choices" id="choices">${choicesHtml}</div>
+        <div class="quiz-feedback" id="feedback"></div>
+      </div>
+    `;
+
+    document.getElementById('back').addEventListener('click', () => window.JL.router.renderMain());
+
+    root.querySelectorAll('.quiz-choice').forEach(btn => {
+      btn.addEventListener('click', () => handleChoice(root, parseInt(btn.dataset.i, 10)));
+    });
+  }
+
+  function handleChoice(root, choiceIdx) {
+    if (state.locked) return;
+    state.locked = true;
+    const q = state.questions[state.idx];
+    const chosen = q.choices[choiceIdx];
+    const correct = chosen.meaning === q.answer.meaning;
+
+    if (correct) state.score += 10;
+
+    const choiceBtns = root.querySelectorAll('.quiz-choice');
+    choiceBtns.forEach((b, i) => {
+      b.classList.add('disabled');
+      if (q.choices[i].meaning === q.answer.meaning) b.classList.add('correct');
+      else if (i === choiceIdx) b.classList.add('wrong');
+    });
+
+    const fb = document.getElementById('feedback');
+    fb.textContent = correct ? '✓ 정답!' : `✗ 정답: ${q.answer.meaning} (${q.answer.kana})`;
+    fb.className = 'quiz-feedback ' + (correct ? 'correct' : 'wrong');
+
+    setTimeout(() => {
+      state.locked = false;
+      state.idx++;
+      if (state.idx >= state.questions.length) {
+        state.finished = true;
+        finalizeScore();
+      }
+      render(root);
+    }, 1200);
+  }
+
+  function finalizeScore() {
+    const progress = window.JL.storage.loadProgress();
+    if (state.score > progress.quizHighScore) {
+      window.JL.storage.saveProgress({ quizHighScore: state.score });
+    }
+  }
+
+  function renderResult(root) {
+    const total = state.questions.length;
+    const max = total * 10;
+    const progress = window.JL.storage.loadProgress();
+    const newRecord = state.score >= progress.quizHighScore && state.score > 0;
+
+    root.innerHTML = `
+      <span class="back-link" id="back">← 메인으로</span>
+      <div class="quiz-result">
+        <div class="label">${state.topic.name} 퀴즈 결과</div>
+        <div class="score">${state.score} / ${max}</div>
+        <div class="label">${newRecord ? '🎉 최고점 갱신!' : '잘 했어요!'}</div>
+        <div class="actions">
+          <button class="btn" id="again">다시 풀기</button>
+          <button class="btn btn-primary" id="home">메인으로</button>
+        </div>
+      </div>
+    `;
+
+    document.getElementById('back').addEventListener('click', () => window.JL.router.renderMain());
+    document.getElementById('again').addEventListener('click', () => mount(root, state.topic));
+    document.getElementById('home').addEventListener('click', () => window.JL.router.renderMain());
+  }
+
+  return { mount, _buildQuestions: buildQuestions };
+})();
   </script>
 
   <!-- ===== MODE: CONVERSATION ===== -->
