@@ -565,7 +565,34 @@ window.JL.utils = (function () {
       .replace(/'/g, '&#39;');
   }
 
-  return { shuffle, pickRandom, escapeHtml };
+  let audioCtx = null;
+  function playCorrectSound() {
+    try {
+      if (!audioCtx) {
+        const Ctx = window.AudioContext || window.webkitAudioContext;
+        if (!Ctx) return;
+        audioCtx = new Ctx();
+      }
+      const now = audioCtx.currentTime;
+      function tone(freq, start, dur) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.value = freq;
+        osc.type = 'sine';
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        gain.gain.setValueAtTime(0, now + start);
+        gain.gain.linearRampToValueAtTime(0.18, now + start + 0.01);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + start + dur);
+        osc.start(now + start);
+        osc.stop(now + start + dur);
+      }
+      tone(523.25, 0, 0.12);
+      tone(659.25, 0.10, 0.16);
+    } catch (e) { /* ignore */ }
+  }
+
+  return { shuffle, pickRandom, escapeHtml, playCorrectSound };
 })();
   </script>
 
@@ -1003,6 +1030,7 @@ window.JL.modes.quiz = (function () {
     const correct = chosen.meaning === q.answer.meaning;
 
     if (correct) state.score += 10;
+    if (correct) window.JL.utils.playCorrectSound();
     if (window.JL.storage) {
       window.JL.storage.recordWordResult(state.topic.id, q.answer.kana, correct);
     }
