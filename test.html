@@ -194,15 +194,41 @@ window.JL.modes.quiz = (function () {
     const words = topic.words;
     if (words.length === 0) return [];
     const u = window.JL.utils;
-    const targets = u.pickRandom(words, Math.min(QUESTION_COUNT, words.length));
+    const storage = window.JL.storage;
+
+    // Sort words into priority pools by mastery state
+    const wrongs = [];
+    const news = [];
+    const learnings = [];
+    const masters = [];
+    for (const w of words) {
+      const status = storage ? storage.getMasteryStatus(topic.id, w.kana) : 'new';
+      const stat = storage ? (storage.loadProgress().wordStats || {})[topic.id + ':' + w.kana] : null;
+      if (stat && stat.wrongCount > 0) wrongs.push(w);
+      else if (status === 'new') news.push(w);
+      else if (status === 'learning') learnings.push(w);
+      else masters.push(w);
+    }
+
+    // Build target list: wrongs first, then news, then learnings, then masters as filler
+    const ordered = [...u.shuffle(wrongs), ...u.shuffle(news), ...u.shuffle(learnings), ...u.shuffle(masters)];
+    const targets = ordered.slice(0, Math.min(QUESTION_COUNT, words.length));
+
     return targets.map(answer => {
       const wrongPool = words.filter(w => w.meaning !== answer.meaning);
       const distractorCount = Math.min(3, wrongPool.length);
-      const wrongs = u.pickRandom(wrongPool, distractorCount);
-      const choices = u.shuffle([answer, ...wrongs]);
-      const direction = Math.random() < 0.5 ? 'jp_to_ko' : 'ko_to_jp';
+      const distractors = u.pickRandom(wrongPool, distractorCount);
+      const choices = u.shuffle([answer, ...distractors]);
+      const direction = pickDirection();
       return { answer, choices, direction };
     });
+  }
+
+  function pickDirection() {
+    const r = Math.random();
+    if (r < 0.34) return 'jp_to_ko';
+    if (r < 0.67) return 'ko_to_jp';
+    return 'audio_to_meaning';
   }
 
   function mount(root, topic) {
@@ -403,7 +429,8 @@ window.JL.modes.quiz = (function () {
 
   // ========== QUIZ tests ==========
   test('quiz: buildQuestions returns 10 questions when topic has >= 10 words', () => {
-    const topic = { words: Array.from({length: 18}, (_, i) => ({
+    localStorage.removeItem('jp.progress');
+    const topic = { id: 'test_topic', words: Array.from({length: 18}, (_, i) => ({
       kana: 'k'+i, kanji: '', meaning: 'm'+i, example: { jp: '', ko: '' }
     })) };
     const qs = window.JL.modes.quiz._buildQuestions(topic);
@@ -411,7 +438,8 @@ window.JL.modes.quiz = (function () {
   });
 
   test('quiz: each question has 4 unique choices', () => {
-    const topic = { words: Array.from({length: 18}, (_, i) => ({
+    localStorage.removeItem('jp.progress');
+    const topic = { id: 'test_topic', words: Array.from({length: 18}, (_, i) => ({
       kana: 'k'+i, kanji: '', meaning: 'm'+i, example: { jp: '', ko: '' }
     })) };
     const qs = window.JL.modes.quiz._buildQuestions(topic);
@@ -423,7 +451,8 @@ window.JL.modes.quiz = (function () {
   });
 
   test('quiz: each question has correct answer in choices', () => {
-    const topic = { words: Array.from({length: 18}, (_, i) => ({
+    localStorage.removeItem('jp.progress');
+    const topic = { id: 'test_topic', words: Array.from({length: 18}, (_, i) => ({
       kana: 'k'+i, kanji: '', meaning: 'm'+i, example: { jp: '', ko: '' }
     })) };
     const qs = window.JL.modes.quiz._buildQuestions(topic);
@@ -433,7 +462,8 @@ window.JL.modes.quiz = (function () {
   });
 
   test('quiz: limits to topic word count when fewer than 10 words', () => {
-    const topic = { words: Array.from({length: 5}, (_, i) => ({
+    localStorage.removeItem('jp.progress');
+    const topic = { id: 'test_topic', words: Array.from({length: 5}, (_, i) => ({
       kana: 'k'+i, kanji: '', meaning: 'm'+i, example: { jp: '', ko: '' }
     })) };
     const qs = window.JL.modes.quiz._buildQuestions(topic);
@@ -441,6 +471,20 @@ window.JL.modes.quiz = (function () {
     for (const q of qs) {
       assertEq(q.choices.length, Math.min(4, 5));
     }
+  });
+
+  test('quiz: prioritizes wrong-answered words', () => {
+    localStorage.removeItem('jp.progress');
+    window.JL.storage.recordWordResult('test_priority', 'k0', false);
+    const topic = {
+      id: 'test_priority',
+      words: Array.from({length: 18}, (_, i) => ({
+        kana: 'k'+i, kanji: '', meaning: 'm'+i, example: { jp: '', ko: '' }
+      }))
+    };
+    const qs = window.JL.modes.quiz._buildQuestions(topic);
+    assert(qs.some(q => q.answer.kana === 'k0'), 'wrong word missing from priority pool');
+    localStorage.removeItem('jp.progress');
   });
 
   // ========== MASTERY tests ==========
