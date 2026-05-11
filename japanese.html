@@ -194,6 +194,14 @@ button { touch-action: manipulation; }
 
 /* Prevent body scroll bounce on tablet */
 html, body { overscroll-behavior: contain; }
+
+.quiz-audio-btn {
+  appearance: none; border: 1.5px solid var(--accent); background: #fff;
+  width: 96px; height: 96px; border-radius: 50%; font-size: 36px;
+  cursor: pointer; transition: all .12s;
+}
+.quiz-audio-btn:hover { background: var(--soft); }
+.quiz-audio-btn:active { transform: scale(0.97); }
   </style>
 </head>
 <body>
@@ -871,12 +879,25 @@ window.JL.modes.quiz = (function () {
     const q = state.questions[state.idx];
     const total = state.questions.length;
 
-    const promptText = q.direction === 'jp_to_ko' ? '뜻은?' : '일본어로?';
-    const targetText = q.direction === 'jp_to_ko' ? q.answer.kana : q.answer.meaning;
-    const targetClass = q.direction === 'jp_to_ko' ? 'target jp jp-text' : 'target';
+    const promptText =
+      q.direction === 'jp_to_ko' ? '뜻은?' :
+      q.direction === 'ko_to_jp' ? '일본어로?' :
+      '들은 단어의 뜻은?';
+
+    let targetHtml;
+    if (q.direction === 'audio_to_meaning') {
+      targetHtml = `<button class="quiz-audio-btn" id="quizAudio" aria-label="발음 듣기">🔊</button>`;
+    } else {
+      const targetText = q.direction === 'jp_to_ko' ? q.answer.kana : q.answer.meaning;
+      const targetClass = q.direction === 'jp_to_ko' ? 'target jp jp-text' : 'target';
+      targetHtml = `<div class="${targetClass}">${u.escapeHtml(targetText)}</div>`;
+    }
 
     const choicesHtml = q.choices.map((c, i) => {
-      const text = q.direction === 'jp_to_ko' ? c.meaning : c.kana;
+      const text =
+        q.direction === 'jp_to_ko' ? c.meaning :
+        q.direction === 'ko_to_jp' ? c.kana :
+        c.meaning;
       const cls = q.direction === 'ko_to_jp' ? 'quiz-choice jp-text' : 'quiz-choice';
       return `<button class="${cls}" data-i="${i}">${u.escapeHtml(text)}</button>`;
     }).join('');
@@ -890,12 +911,19 @@ window.JL.modes.quiz = (function () {
         </div>
         <div class="quiz-question">
           <div class="prompt">${promptText}</div>
-          <div class="${targetClass}">${u.escapeHtml(targetText)}</div>
+          ${targetHtml}
         </div>
         <div class="quiz-choices" id="choices">${choicesHtml}</div>
         <div class="quiz-feedback" id="feedback"></div>
       </div>
     `;
+
+    if (q.direction === 'audio_to_meaning') {
+      const speakAudio = () => window.JL.tts.speak(q.answer.kana);
+      setTimeout(speakAudio, 200);
+      const audioBtn = document.getElementById('quizAudio');
+      if (audioBtn) audioBtn.addEventListener('click', speakAudio);
+    }
 
     document.getElementById('back').addEventListener('click', () => {
       if (state.pendingTimeout) { clearTimeout(state.pendingTimeout); state.pendingTimeout = null; }
