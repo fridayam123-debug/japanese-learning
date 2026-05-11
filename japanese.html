@@ -202,6 +202,28 @@ html, body { overscroll-behavior: contain; }
 }
 .quiz-audio-btn:hover { background: var(--soft); }
 .quiz-audio-btn:active { transform: scale(0.97); }
+
+.topic-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin: 20px 0 28px;
+}
+.topic-card {
+  background: var(--soft); border: 1.5px solid var(--border); border-radius: 14px;
+  padding: 16px 14px; cursor: pointer; transition: all .12s; text-align: left;
+}
+.topic-card:hover { border-color: var(--accent); }
+.topic-card.active { border-color: var(--accent); background: #fff; box-shadow: var(--shadow); }
+.topic-card .name { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+.topic-card .progress-text { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.topic-card .progress-bar {
+  width: 100%; height: 6px; background: #e5e5e5; border-radius: 3px; overflow: hidden;
+}
+.topic-card .progress-fill {
+  height: 100%; background: var(--accent); transition: width .3s;
+}
+
+@media (max-width: 700px) {
+  .topic-grid { grid-template-columns: repeat(2, 1fr); }
+}
   </style>
 </head>
 <body>
@@ -679,15 +701,25 @@ window.JL.router = (function () {
     const progress = window.JL.storage.loadProgress();
     const u = window.JL.utils;
 
-    const topicOptions = DATA.topics.map(t =>
-      `<option value="${u.escapeHtml(t.id)}"${t.id === currentTopic ? ' selected' : ''}>${u.escapeHtml(t.name)}</option>`
-    ).join('');
+    const topicCards = DATA.topics.map(t => {
+      const p = window.JL.storage.getTopicProgress(t.id, t.words);
+      const pct = p.total > 0 ? Math.round((p.mastered / p.total) * 100) : 0;
+      const activeClass = t.id === currentTopic ? ' active' : '';
+      return `
+        <div class="topic-card${activeClass}" data-topic="${u.escapeHtml(t.id)}">
+          <div class="name">${u.escapeHtml(t.name)}</div>
+          <div class="progress-text">${p.mastered} / ${p.total} 마스터</div>
+          <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
+        </div>
+      `;
+    }).join('');
 
     root.innerHTML = `
       <header class="app-header">
         <h1>일본어 학습</h1>
-        <select class="topic-select" id="topicSelect">${topicOptions}</select>
       </header>
+
+      <div class="topic-grid">${topicCards}</div>
 
       <div class="mode-grid">
         <div class="mode-card" data-mode="flashcard">
@@ -711,7 +743,9 @@ window.JL.router = (function () {
       </div>
     `;
 
-    document.getElementById('topicSelect').addEventListener('change', e => setTopic(e.target.value));
+    root.querySelectorAll('.topic-card').forEach(el => {
+      el.addEventListener('click', () => setTopic(el.dataset.topic));
+    });
     root.querySelectorAll('.mode-card').forEach(el => {
       el.addEventListener('click', () => show(el.dataset.mode));
     });
