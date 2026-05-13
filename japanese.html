@@ -3,6 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="日本語">
+  <meta name="theme-color" content="#7BAFD4">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
   <title>일본어 학습</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; }
@@ -228,6 +235,13 @@ html, body { overscroll-behavior: contain; }
 </head>
 <body>
   <div id="app">로딩 중...</div>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+  </script>
 
   <!-- ===== DATA ===== -->
   <script id="DATA">
@@ -256,7 +270,37 @@ html, body { overscroll-behavior: contain; }
         { kana: 'じゅぎょう', kanji: '授業', meaning: '수업', example: { jp: 'じゅぎょうが はじまります。', ko: '수업이 시작됩니다.' } },
         { kana: 'やすみ', kanji: '休み', meaning: '쉬다/방학', example: { jp: 'なつやすみに りょこうします。', ko: '여름 방학에 여행합니다.' } },
         { kana: 'こうてい', kanji: '校庭', meaning: '운동장', example: { jp: 'こうていで あそびます。', ko: '운동장에서 놉니다.' } },
-        { kana: 'たいいく', kanji: '体育', meaning: '체육', example: { jp: 'たいいくが すきです。', ko: '체육을 좋아합니다.' } }
+        { kana: 'たいいく', kanji: '体育', meaning: '체육', example: { jp: 'たいいくが すきです。', ko: '체육을 좋아합니다.' } },
+        { kana: 'としょかん', kanji: '図書館', meaning: '도서관', example: { jp: 'としょかんで ほんを かります。', ko: '도서관에서 책을 빌립니다.' } },
+        { kana: 'きゅうしょく', kanji: '給食', meaning: '급식', example: { jp: 'きゅうしょくが おいしいです。', ko: '급식이 맛있습니다.' } },
+        { kana: 'すうがく', kanji: '数学', meaning: '수학', example: { jp: 'すうがくの テストが あります。', ko: '수학 시험이 있습니다.' } },
+        { kana: 'こくご', kanji: '国語', meaning: '국어', example: { jp: 'こくごの じゅぎょうが すきです。', ko: '국어 수업을 좋아합니다.' } },
+        { kana: 'りか', kanji: '理科', meaning: '과학', example: { jp: 'りかが すきです。', ko: '과학을 좋아합니다.' } },
+        { kana: 'おんがく', kanji: '音楽', meaning: '음악', example: { jp: 'おんがくの じゅぎょうで うたいます。', ko: '음악 수업에서 노래를 부릅니다.' } },
+        { kana: 'びじゅつ', kanji: '美術', meaning: '미술', example: { jp: 'びじゅつで えを かきます。', ko: '미술에서 그림을 그립니다.' } },
+        { kana: 'がくねん', kanji: '学年', meaning: '학년', example: { jp: 'なんがくねんですか。', ko: '몇 학년이에요?' } },
+        { kana: 'クラス', kanji: '', meaning: '반', example: { jp: 'おなじ クラスです。', ko: '같은 반입니다.' } },
+        { kana: 'クラスメート', kanji: '', meaning: '반 친구', example: { jp: 'クラスメートと べんきょうします。', ko: '반 친구와 공부합니다.' } },
+        { kana: 'ろうか', kanji: '廊下', meaning: '복도', example: { jp: 'ろうかを あるきます。', ko: '복도를 걷습니다.' } },
+        { kana: 'かいだん', kanji: '階段', meaning: '계단', example: { jp: 'かいだんを のぼります。', ko: '계단을 오릅니다.' } },
+        { kana: 'きょうかしょ', kanji: '教科書', meaning: '교과서', example: { jp: 'きょうかしょを あけてください。', ko: '교과서를 펴 주세요.' } },
+        { kana: 'じょうぎ', kanji: '定規', meaning: '자(ruler)', example: { jp: 'じょうぎで せんを ひきます。', ko: '자로 선을 긋습니다.' } },
+        { kana: 'はさみ', kanji: '', meaning: '가위', example: { jp: 'はさみで かみを きります。', ko: '가위로 종이를 자릅니다.' } },
+        { kana: 'のり', kanji: '', meaning: '풀(접착제)', example: { jp: 'のりで はります。', ko: '풀로 붙입니다.' } },
+        { kana: 'いろえんぴつ', kanji: '色鉛筆', meaning: '색연필', example: { jp: 'いろえんぴつで ぬります。', ko: '색연필로 칠합니다.' } },
+        { kana: 'おりがみ', kanji: '折り紙', meaning: '색종이', example: { jp: 'おりがみで つるを おります。', ko: '색종이로 학을 접습니다.' } },
+        { kana: 'クレヨン', kanji: '', meaning: '크레용', example: { jp: 'クレヨンで えを かきます。', ko: '크레용으로 그림을 그립니다.' } },
+        { kana: 'え', kanji: '絵', meaning: '그림', example: { jp: 'きれいな えを かきます。', ko: '예쁜 그림을 그립니다.' } },
+        { kana: 'そつぎょう', kanji: '卒業', meaning: '졸업', example: { jp: 'しょうがっこうを そつぎょうします。', ko: '초등학교를 졸업합니다.' } },
+        { kana: 'にゅうがく', kanji: '入学', meaning: '입학', example: { jp: 'がっこうに にゅうがくします。', ko: '학교에 입학합니다.' } },
+        { kana: 'がっき', kanji: '学期', meaning: '학기', example: { jp: 'いちがっきが おわります。', ko: '1학기가 끝납니다.' } },
+        { kana: 'ほうかご', kanji: '放課後', meaning: '방과 후', example: { jp: 'ほうかごに ともだちと あそびます。', ko: '방과 후에 친구와 놉니다.' } },
+        { kana: 'うんどうかい', kanji: '運動会', meaning: '운동회', example: { jp: 'うんどうかいで はしります。', ko: '운동회에서 달립니다.' } },
+        { kana: 'えんそく', kanji: '遠足', meaning: '소풍', example: { jp: 'えんそくが たのしみです。', ko: '소풍이 기대됩니다.' } },
+        { kana: 'ようちえん', kanji: '幼稚園', meaning: '유치원', example: { jp: 'ようちえんに いきます。', ko: '유치원에 갑니다.' } },
+        { kana: 'しょうがっこう', kanji: '小学校', meaning: '초등학교', example: { jp: 'しょうがっこうは たのしいです。', ko: '초등학교는 즐겁습니다.' } },
+        { kana: 'てん', kanji: '点', meaning: '점수', example: { jp: 'ひゃくてん とりました。', ko: '100점 받았습니다.' } },
+        { kana: 'せいせき', kanji: '成績', meaning: '성적', example: { jp: 'せいせきが あがりました。', ko: '성적이 올랐습니다.' } }
       ],
       dialogues: [
         {
@@ -294,7 +338,37 @@ html, body { overscroll-behavior: contain; }
         { kana: 'カレー', kanji: '', meaning: '카레', example: { jp: 'カレーが だいすきです。', ko: '카레를 정말 좋아합니다.' } },
         { kana: 'おいしい', kanji: '', meaning: '맛있다', example: { jp: 'これは おいしいです。', ko: '이것은 맛있습니다.' } },
         { kana: 'みそしる', kanji: '味噌汁', meaning: '된장국', example: { jp: 'みそしるを のみます。', ko: '된장국을 마십니다.' } },
-        { kana: 'おにぎり', kanji: 'お握り', meaning: '주먹밥', example: { jp: 'おにぎりを たべます。', ko: '주먹밥을 먹습니다.' } }
+        { kana: 'おにぎり', kanji: 'お握り', meaning: '주먹밥', example: { jp: 'おにぎりを たべます。', ko: '주먹밥을 먹습니다.' } },
+        { kana: 'とうふ', kanji: '豆腐', meaning: '두부', example: { jp: 'とうふが やわらかいです。', ko: '두부가 부드럽습니다.' } },
+        { kana: 'うどん', kanji: '', meaning: '우동', example: { jp: 'うどんを たべます。', ko: '우동을 먹습니다.' } },
+        { kana: 'そば', kanji: '', meaning: '소바', example: { jp: 'そばは おいしいです。', ko: '소바는 맛있습니다.' } },
+        { kana: 'てんぷら', kanji: '天ぷら', meaning: '튀김', example: { jp: 'てんぷらを あげます。', ko: '튀김을 튀깁니다.' } },
+        { kana: 'バナナ', kanji: '', meaning: '바나나', example: { jp: 'バナナを たべます。', ko: '바나나를 먹습니다.' } },
+        { kana: 'いちご', kanji: '苺', meaning: '딸기', example: { jp: 'いちごは あかいです。', ko: '딸기는 빨갛습니다.' } },
+        { kana: 'ぶどう', kanji: '葡萄', meaning: '포도', example: { jp: 'ぶどうが むらさきです。', ko: '포도가 보라색입니다.' } },
+        { kana: 'すいか', kanji: '西瓜', meaning: '수박', example: { jp: 'すいかが おおきいです。', ko: '수박이 큽니다.' } },
+        { kana: 'もも', kanji: '桃', meaning: '복숭아', example: { jp: 'もももも もも もも。', ko: '복숭아를 좋아합니다.' } },
+        { kana: 'トマト', kanji: '', meaning: '토마토', example: { jp: 'トマトは あかいです。', ko: '토마토는 빨갛습니다.' } },
+        { kana: 'にんじん', kanji: '人参', meaning: '당근', example: { jp: 'にんじんが きらいです。', ko: '당근을 싫어합니다.' } },
+        { kana: 'たまねぎ', kanji: '玉葱', meaning: '양파', example: { jp: 'たまねぎを きります。', ko: '양파를 자릅니다.' } },
+        { kana: 'じゃがいも', kanji: '', meaning: '감자', example: { jp: 'じゃがいもを にます。', ko: '감자를 삶습니다.' } },
+        { kana: 'ケーキ', kanji: '', meaning: '케이크', example: { jp: 'ケーキを たべます。', ko: '케이크를 먹습니다.' } },
+        { kana: 'アイスクリーム', kanji: '', meaning: '아이스크림', example: { jp: 'アイスクリームが すきです。', ko: '아이스크림을 좋아합니다.' } },
+        { kana: 'チョコレート', kanji: '', meaning: '초콜릿', example: { jp: 'チョコレートを あげます。', ko: '초콜릿을 줍니다.' } },
+        { kana: 'ジュース', kanji: '', meaning: '주스', example: { jp: 'ジュースを のみます。', ko: '주스를 마십니다.' } },
+        { kana: 'コーヒー', kanji: '', meaning: '커피', example: { jp: 'コーヒーを のみます。', ko: '커피를 마십니다.' } },
+        { kana: 'あまい', kanji: '甘い', meaning: '달다', example: { jp: 'このケーキは あまいです。', ko: '이 케이크는 답니다.' } },
+        { kana: 'からい', kanji: '辛い', meaning: '맵다', example: { jp: 'このカレーは からいです。', ko: '이 카레는 맵습니다.' } },
+        { kana: 'にがい', kanji: '苦い', meaning: '쓰다', example: { jp: 'コーヒーが にがいです。', ko: '커피가 쓰습니다.' } },
+        { kana: 'すっぱい', kanji: '酸っぱい', meaning: '시다', example: { jp: 'レモンは すっぱいです。', ko: '레몬은 십니다.' } },
+        { kana: 'しょっぱい', kanji: '', meaning: '짜다', example: { jp: 'このスープは しょっぱいです。', ko: '이 수프는 짭니다.' } },
+        { kana: 'ソーセージ', kanji: '', meaning: '소시지', example: { jp: 'ソーセージを やきます。', ko: '소시지를 굽습니다.' } },
+        { kana: 'レストラン', kanji: '', meaning: '식당', example: { jp: 'レストランで たべます。', ko: '식당에서 먹습니다.' } },
+        { kana: 'しょくじ', kanji: '食事', meaning: '식사', example: { jp: 'しょくじを します。', ko: '식사를 합니다.' } },
+        { kana: 'ひるごはん', kanji: '昼ご飯', meaning: '점심밥', example: { jp: 'ひるごはんを たべます。', ko: '점심밥을 먹습니다.' } },
+        { kana: 'ばんごはん', kanji: '晩ご飯', meaning: '저녁밥', example: { jp: 'ばんごはんは なんですか。', ko: '저녁밥은 뭐예요?' } },
+        { kana: 'あさごはん', kanji: '朝ご飯', meaning: '아침밥', example: { jp: 'あさごはんを たべました。', ko: '아침밥을 먹었습니다.' } },
+        { kana: 'おやつ', kanji: '', meaning: '간식', example: { jp: 'おやつの じかんです。', ko: '간식 시간입니다.' } }
       ],
       dialogues: [
         {
@@ -332,7 +406,37 @@ html, body { overscroll-behavior: contain; }
         { kana: 'ペンギン', kanji: '', meaning: '펭귄', example: { jp: 'ペンギンは およぎが じょうずです。', ko: '펭귄은 수영을 잘 합니다.' } },
         { kana: 'こいぬ', kanji: '子犬', meaning: '강아지', example: { jp: 'こいぬが かわいいです。', ko: '강아지가 귀엽습니다.' } },
         { kana: 'こねこ', kanji: '子猫', meaning: '새끼고양이', example: { jp: 'こねこが ねています。', ko: '새끼고양이가 자고 있습니다.' } },
-        { kana: 'カエル', kanji: '', meaning: '개구리', example: { jp: 'カエルが ぴょんと とびます。', ko: '개구리가 폴짝 뜁니다.' } }
+        { kana: 'カエル', kanji: '', meaning: '개구리', example: { jp: 'カエルが ぴょんと とびます。', ko: '개구리가 폴짝 뜁니다.' } },
+        { kana: 'とら', kanji: '虎', meaning: '호랑이', example: { jp: 'とらは つよいです。', ko: '호랑이는 강합니다.' } },
+        { kana: 'きつね', kanji: '狐', meaning: '여우', example: { jp: 'きつねは かしこいです。', ko: '여우는 영리합니다.' } },
+        { kana: 'おおかみ', kanji: '狼', meaning: '늑대', example: { jp: 'おおかみが ほえます。', ko: '늑대가 울부짖습니다.' } },
+        { kana: 'しか', kanji: '鹿', meaning: '사슴', example: { jp: 'しかが もりに います。', ko: '사슴이 숲에 있습니다.' } },
+        { kana: 'へび', kanji: '蛇', meaning: '뱀', example: { jp: 'へびが ながいです。', ko: '뱀이 깁니다.' } },
+        { kana: 'かめ', kanji: '亀', meaning: '거북이', example: { jp: 'かめは おそいです。', ko: '거북이는 느립니다.' } },
+        { kana: 'わに', kanji: '鰐', meaning: '악어', example: { jp: 'わにの くちは おおきいです。', ko: '악어의 입은 큽니다.' } },
+        { kana: 'さめ', kanji: '鮫', meaning: '상어', example: { jp: 'さめが およぎます。', ko: '상어가 헤엄칩니다.' } },
+        { kana: 'くじら', kanji: '鯨', meaning: '고래', example: { jp: 'くじらは おおきいです。', ko: '고래는 큽니다.' } },
+        { kana: 'イルカ', kanji: '', meaning: '돌고래', example: { jp: 'イルカが とびます。', ko: '돌고래가 뜁니다.' } },
+        { kana: 'わし', kanji: '鷲', meaning: '독수리', example: { jp: 'わしが そらを とびます。', ko: '독수리가 하늘을 납니다.' } },
+        { kana: 'あひる', kanji: '', meaning: '오리', example: { jp: 'あひるが みずで あそびます。', ko: '오리가 물에서 놉니다.' } },
+        { kana: 'にわとり', kanji: '鶏', meaning: '닭', example: { jp: 'にわとりが なきます。', ko: '닭이 웁니다.' } },
+        { kana: 'オウム', kanji: '', meaning: '앵무새', example: { jp: 'オウムが はなします。', ko: '앵무새가 말합니다.' } },
+        { kana: 'あり', kanji: '蟻', meaning: '개미', example: { jp: 'ありが ちいさいです。', ko: '개미가 작습니다.' } },
+        { kana: 'ちょう', kanji: '蝶', meaning: '나비', example: { jp: 'ちょうが はなに とまります。', ko: '나비가 꽃에 앉습니다.' } },
+        { kana: 'はち', kanji: '蜂', meaning: '벌', example: { jp: 'はちが みつを あつめます。', ko: '벌이 꿀을 모읍니다.' } },
+        { kana: 'かたつむり', kanji: '', meaning: '달팽이', example: { jp: 'かたつむりは おそいです。', ko: '달팽이는 느립니다.' } },
+        { kana: 'とんぼ', kanji: '蜻蛉', meaning: '잠자리', example: { jp: 'とんぼが とんでいます。', ko: '잠자리가 날고 있습니다.' } },
+        { kana: 'てんとうむし', kanji: 'てんとう虫', meaning: '무당벌레', example: { jp: 'てんとうむしは かわいいです。', ko: '무당벌레는 귀엽습니다.' } },
+        { kana: 'ほたる', kanji: '蛍', meaning: '반딧불이', example: { jp: 'ほたるが ひかります。', ko: '반딧불이가 빛납니다.' } },
+        { kana: 'カバ', kanji: '', meaning: '하마', example: { jp: 'カバの くちは ひろいです。', ko: '하마의 입은 넓습니다.' } },
+        { kana: 'ラクダ', kanji: '', meaning: '낙타', example: { jp: 'ラクダが さばくを あるきます。', ko: '낙타가 사막을 걷습니다.' } },
+        { kana: 'タコ', kanji: '蛸', meaning: '문어', example: { jp: 'タコの あしは はっぽんです。', ko: '문어 다리는 여덟 개입니다.' } },
+        { kana: 'イカ', kanji: '', meaning: '오징어', example: { jp: 'イカが およぎます。', ko: '오징어가 헤엄칩니다.' } },
+        { kana: 'エビ', kanji: '蝦', meaning: '새우', example: { jp: 'エビを やきます。', ko: '새우를 굽습니다.' } },
+        { kana: 'カニ', kanji: '蟹', meaning: '게', example: { jp: 'カニが よこに あるきます。', ko: '게가 옆으로 걷습니다.' } },
+        { kana: 'むし', kanji: '虫', meaning: '벌레', example: { jp: 'むしを みつけました。', ko: '벌레를 발견했습니다.' } },
+        { kana: 'こうもり', kanji: '蝙蝠', meaning: '박쥐', example: { jp: 'こうもりは よる とびます。', ko: '박쥐는 밤에 납니다.' } },
+        { kana: 'サイ', kanji: '', meaning: '코뿔소', example: { jp: 'サイの つのは ながいです。', ko: '코뿔소의 뿔은 깁니다.' } }
       ],
       dialogues: [
         {
@@ -369,7 +473,37 @@ html, body { overscroll-behavior: contain; }
         { kana: 'おっと', kanji: '夫', meaning: '남편', example: { jp: 'おっとは かいしゃいんです。', ko: '남편은 회사원입니다.' } },
         { kana: 'つま', kanji: '妻', meaning: '아내', example: { jp: 'つまは せんせいです。', ko: '아내는 선생님입니다.' } },
         { kana: 'ペット', kanji: '', meaning: '반려동물', example: { jp: 'ペットを かっています。', ko: '반려동물을 키웁니다.' } },
-        { kana: 'なまえ', kanji: '名前', meaning: '이름', example: { jp: 'なまえを おしえてください。', ko: '이름을 알려 주세요.' } }
+        { kana: 'なまえ', kanji: '名前', meaning: '이름', example: { jp: 'なまえを おしえてください。', ko: '이름을 알려 주세요.' } },
+        { kana: 'きょうだい', kanji: '兄弟', meaning: '형제', example: { jp: 'きょうだいは ふたりです。', ko: '형제는 두 명입니다.' } },
+        { kana: 'しんせき', kanji: '親戚', meaning: '친척', example: { jp: 'しんせきが あつまります。', ko: '친척이 모입니다.' } },
+        { kana: 'けっこん', kanji: '結婚', meaning: '결혼', example: { jp: 'けっこんしき に いきます。', ko: '결혼식에 갑니다.' } },
+        { kana: 'たんじょうび', kanji: '誕生日', meaning: '생일', example: { jp: 'きょうは たんじょうびです。', ko: '오늘은 생일입니다.' } },
+        { kana: 'プレゼント', kanji: '', meaning: '선물', example: { jp: 'プレゼントを もらいました。', ko: '선물을 받았습니다.' } },
+        { kana: 'しあわせ', kanji: '幸せ', meaning: '행복', example: { jp: 'かぞくと いて しあわせです。', ko: '가족과 함께 있어 행복합니다.' } },
+        { kana: 'あい', kanji: '愛', meaning: '사랑', example: { jp: 'かぞくを あいしています。', ko: '가족을 사랑합니다.' } },
+        { kana: 'へや', kanji: '部屋', meaning: '방', example: { jp: 'へやを かたづけます。', ko: '방을 정리합니다.' } },
+        { kana: 'だいどころ', kanji: '台所', meaning: '부엌', example: { jp: 'だいどころで りょうりします。', ko: '부엌에서 요리합니다.' } },
+        { kana: 'いま', kanji: '居間', meaning: '거실', example: { jp: 'いまで テレビを みます。', ko: '거실에서 TV를 봅니다.' } },
+        { kana: 'おふろ', kanji: 'お風呂', meaning: '욕실/목욕', example: { jp: 'おふろに はいります。', ko: '욕실에 들어갑니다.' } },
+        { kana: 'うち', kanji: '', meaning: '우리 집', example: { jp: 'うちに かえります。', ko: '우리 집에 돌아갑니다.' } },
+        { kana: 'でんわ', kanji: '電話', meaning: '전화', example: { jp: 'でんわを かけます。', ko: '전화를 겁니다.' } },
+        { kana: 'てがみ', kanji: '手紙', meaning: '편지', example: { jp: 'おじいさんに てがみを かきます。', ko: '할아버지에게 편지를 씁니다.' } },
+        { kana: 'となり', kanji: '隣', meaning: '이웃', example: { jp: 'となりの ひとは やさしいです。', ko: '이웃 사람은 친절합니다.' } },
+        { kana: 'えいが', kanji: '映画', meaning: '영화', example: { jp: 'かぞくで えいがを みます。', ko: '가족이서 영화를 봅니다.' } },
+        { kana: 'まんが', kanji: '漫画', meaning: '만화', example: { jp: 'まんがを よみます。', ko: '만화를 읽습니다.' } },
+        { kana: 'ゲーム', kanji: '', meaning: '게임', example: { jp: 'ゲームを します。', ko: '게임을 합니다.' } },
+        { kana: 'うんどう', kanji: '運動', meaning: '운동', example: { jp: 'まいにち うんどうします。', ko: '매일 운동합니다.' } },
+        { kana: 'さんぽ', kanji: '散歩', meaning: '산책', example: { jp: 'いぬと さんぽします。', ko: '개와 산책합니다.' } },
+        { kana: 'ゆめ', kanji: '夢', meaning: '꿈', example: { jp: 'ゆめが あります。', ko: '꿈이 있습니다.' } },
+        { kana: 'わらい', kanji: '笑い', meaning: '웃음', example: { jp: 'かぞくの わらいが すきです。', ko: '가족의 웃음을 좋아합니다.' } },
+        { kana: 'なみだ', kanji: '涙', meaning: '눈물', example: { jp: 'うれしくて なみだが でます。', ko: '기뻐서 눈물이 납니다.' } },
+        { kana: 'けんこう', kanji: '健康', meaning: '건강', example: { jp: 'かぞく みんな けんこうです。', ko: '가족 모두 건강합니다.' } },
+        { kana: 'とし', kanji: '年', meaning: '나이', example: { jp: 'としは いくつですか。', ko: '나이가 몇 살이에요?' } },
+        { kana: 'あに', kanji: '兄', meaning: '(나의) 형/오빠', example: { jp: 'あには こうこうせいです。', ko: '형은 고등학생입니다.' } },
+        { kana: 'あね', kanji: '姉', meaning: '(나의) 누나/언니', example: { jp: 'あねは だいがくせいです。', ko: '누나는 대학생입니다.' } },
+        { kana: 'あそび', kanji: '遊び', meaning: '놀이', example: { jp: 'かぞくで あそびます。', ko: '가족이서 놉니다.' } },
+        { kana: 'いっしょ', kanji: '一緒', meaning: '함께', example: { jp: 'いっしょに たべましょう。', ko: '함께 먹읍시다.' } },
+        { kana: 'たのしい', kanji: '楽しい', meaning: '즐겁다', example: { jp: 'かぞくと いて たのしいです。', ko: '가족과 있어 즐겁습니다.' } }
       ],
       dialogues: [
         {
@@ -406,7 +540,37 @@ html, body { overscroll-behavior: contain; }
         { kana: 'ごめんなさい', kanji: '', meaning: '미안해요', example: { jp: 'ごめんなさい、おそくなりました。', ko: '미안해요, 늦었습니다.' } },
         { kana: 'がんばって', kanji: '', meaning: '힘내', example: { jp: 'しけん、がんばってね。', ko: '시험 힘내.' } },
         { kana: 'すき', kanji: '好き', meaning: '좋아하다', example: { jp: 'いぬが すきです。', ko: '개를 좋아합니다.' } },
-        { kana: 'きらい', kanji: '嫌い', meaning: '싫어하다', example: { jp: 'にんじんが きらいです。', ko: '당근을 싫어합니다.' } }
+        { kana: 'きらい', kanji: '嫌い', meaning: '싫어하다', example: { jp: 'にんじんが きらいです。', ko: '당근을 싫어합니다.' } },
+        { kana: 'おきる', kanji: '起きる', meaning: '일어나다', example: { jp: 'あさ ろくじに おきます。', ko: '아침 6시에 일어납니다.' } },
+        { kana: 'ねる', kanji: '寝る', meaning: '자다', example: { jp: 'はやく ねます。', ko: '일찍 잡니다.' } },
+        { kana: 'たべる', kanji: '食べる', meaning: '먹다', example: { jp: 'ごはんを たべます。', ko: '밥을 먹습니다.' } },
+        { kana: 'のむ', kanji: '飲む', meaning: '마시다', example: { jp: 'みずを のみます。', ko: '물을 마십니다.' } },
+        { kana: 'あるく', kanji: '歩く', meaning: '걷다', example: { jp: 'がっこうまで あるきます。', ko: '학교까지 걷습니다.' } },
+        { kana: 'はしる', kanji: '走る', meaning: '달리다', example: { jp: 'こうていで はしります。', ko: '운동장에서 달립니다.' } },
+        { kana: 'みる', kanji: '見る', meaning: '보다', example: { jp: 'テレビを みます。', ko: 'TV를 봅니다.' } },
+        { kana: 'きく', kanji: '聞く', meaning: '듣다', example: { jp: 'おんがくを ききます。', ko: '음악을 듣습니다.' } },
+        { kana: 'かく', kanji: '書く', meaning: '쓰다', example: { jp: 'にっきを かきます。', ko: '일기를 씁니다.' } },
+        { kana: 'よむ', kanji: '読む', meaning: '읽다', example: { jp: 'ほんを よみます。', ko: '책을 읽습니다.' } },
+        { kana: 'かう', kanji: '買う', meaning: '사다', example: { jp: 'コンビニで かいます。', ko: '편의점에서 삽니다.' } },
+        { kana: 'まつ', kanji: '待つ', meaning: '기다리다', example: { jp: 'えきで まちます。', ko: '역에서 기다립니다.' } },
+        { kana: 'あう', kanji: '会う', meaning: '만나다', example: { jp: 'ともだちに あいます。', ko: '친구를 만납니다.' } },
+        { kana: 'あそぶ', kanji: '遊ぶ', meaning: '놀다', example: { jp: 'こうえんで あそびます。', ko: '공원에서 놉니다.' } },
+        { kana: 'びょういん', kanji: '病院', meaning: '병원', example: { jp: 'びょういんに いきます。', ko: '병원에 갑니다.' } },
+        { kana: 'くすりや', kanji: '薬屋', meaning: '약국', example: { jp: 'くすりやで くすりを かいます。', ko: '약국에서 약을 삽니다.' } },
+        { kana: 'コンビニ', kanji: '', meaning: '편의점', example: { jp: 'コンビニで かいものします。', ko: '편의점에서 쇼핑합니다.' } },
+        { kana: 'スーパー', kanji: '', meaning: '슈퍼마켓', example: { jp: 'スーパーで やさいを かいます。', ko: '슈퍼마켓에서 채소를 삽니다.' } },
+        { kana: 'ぎんこう', kanji: '銀行', meaning: '은행', example: { jp: 'ぎんこうに いきます。', ko: '은행에 갑니다.' } },
+        { kana: 'おおきい', kanji: '大きい', meaning: '크다', example: { jp: 'おおきい いぬです。', ko: '큰 개입니다.' } },
+        { kana: 'ちいさい', kanji: '小さい', meaning: '작다', example: { jp: 'ちいさい ねこです。', ko: '작은 고양이입니다.' } },
+        { kana: 'あかい', kanji: '赤い', meaning: '빨갛다', example: { jp: 'りんごが あかいです。', ko: '사과가 빨갛습니다.' } },
+        { kana: 'あおい', kanji: '青い', meaning: '파랗다', example: { jp: 'そらが あおいです。', ko: '하늘이 파랗습니다.' } },
+        { kana: 'しろい', kanji: '白い', meaning: '하얗다', example: { jp: 'ゆきが しろいです。', ko: '눈이 하얗습니다.' } },
+        { kana: 'くろい', kanji: '黒い', meaning: '검다', example: { jp: 'くろい ねこです。', ko: '검은 고양이입니다.' } },
+        { kana: 'きいろい', kanji: '黄色い', meaning: '노랗다', example: { jp: 'バナナが きいろいです。', ko: '바나나가 노랗습니다.' } },
+        { kana: 'たかい', kanji: '高い', meaning: '비싸다/높다', example: { jp: 'このとけいは たかいです。', ko: '이 시계는 비쌉니다.' } },
+        { kana: 'やすい', kanji: '安い', meaning: '싸다', example: { jp: 'やすい おみせです。', ko: '싼 가게입니다.' } },
+        { kana: 'いい', kanji: '', meaning: '좋다', example: { jp: 'いい てんきです。', ko: '좋은 날씨입니다.' } },
+        { kana: 'わるい', kanji: '悪い', meaning: '나쁘다', example: { jp: 'てんきが わるいです。', ko: '날씨가 나쁩니다.' } }
       ],
       dialogues: [
         {
@@ -443,7 +607,37 @@ html, body { overscroll-behavior: contain; }
         { kana: 'あした', kanji: '明日', meaning: '내일', example: { jp: 'あした あいましょう。', ko: '내일 만납시다.' } },
         { kana: 'きのう', kanji: '昨日', meaning: '어제', example: { jp: 'きのうは あめでした。', ko: '어제는 비가 왔습니다.' } },
         { kana: 'ふん', kanji: '分', meaning: '분', example: { jp: 'ごふん まってください。', ko: '5분 기다려 주세요.' } },
-        { kana: 'びょう', kanji: '秒', meaning: '초', example: { jp: 'じゅうびょう かぞえます。', ko: '10초 셉니다.' } }
+        { kana: 'びょう', kanji: '秒', meaning: '초', example: { jp: 'じゅうびょう かぞえます。', ko: '10초 셉니다.' } },
+        { kana: 'じゅういち', kanji: '十一', meaning: '11', example: { jp: 'じゅういちじに ねます。', ko: '11시에 잡니다.' } },
+        { kana: 'にじゅう', kanji: '二十', meaning: '20', example: { jp: 'にじゅうえん です。', ko: '20엔입니다.' } },
+        { kana: 'ひゃく', kanji: '百', meaning: '100', example: { jp: 'ひゃくてん とりました。', ko: '100점 받았습니다.' } },
+        { kana: 'せん', kanji: '千', meaning: '1000', example: { jp: 'せんえん あります。', ko: '1000엔 있습니다.' } },
+        { kana: 'まん', kanji: '万', meaning: '10000', example: { jp: 'いちまんえんです。', ko: '1만 엔입니다.' } },
+        { kana: 'はん', kanji: '半', meaning: '반(절반)', example: { jp: 'さんじはんです。', ko: '3시 반입니다.' } },
+        { kana: 'げつようび', kanji: '月曜日', meaning: '월요일', example: { jp: 'げつようびに がっこうへ いきます。', ko: '월요일에 학교에 갑니다.' } },
+        { kana: 'かようび', kanji: '火曜日', meaning: '화요일', example: { jp: 'かようびは たいいくです。', ko: '화요일은 체육입니다.' } },
+        { kana: 'すいようび', kanji: '水曜日', meaning: '수요일', example: { jp: 'すいようびに おんがくが あります。', ko: '수요일에 음악이 있습니다.' } },
+        { kana: 'もくようび', kanji: '木曜日', meaning: '목요일', example: { jp: 'もくようびは そうじです。', ko: '목요일은 청소입니다.' } },
+        { kana: 'きんようび', kanji: '金曜日', meaning: '금요일', example: { jp: 'きんようびが すきです。', ko: '금요일을 좋아합니다.' } },
+        { kana: 'どようび', kanji: '土曜日', meaning: '토요일', example: { jp: 'どようびは やすみです。', ko: '토요일은 쉽니다.' } },
+        { kana: 'にちようび', kanji: '日曜日', meaning: '일요일', example: { jp: 'にちようびに かぞくと でかけます。', ko: '일요일에 가족과 외출합니다.' } },
+        { kana: 'まいにち', kanji: '毎日', meaning: '매일', example: { jp: 'まいにち べんきょうします。', ko: '매일 공부합니다.' } },
+        { kana: 'まいしゅう', kanji: '毎週', meaning: '매주', example: { jp: 'まいしゅう にちようびに えいがを みます。', ko: '매주 일요일에 영화를 봅니다.' } },
+        { kana: 'しゅう', kanji: '週', meaning: '주(週)', example: { jp: 'いっしゅうかん たちました。', ko: '1주일이 지났습니다.' } },
+        { kana: 'つき', kanji: '月', meaning: '달/월', example: { jp: 'つきが きれいです。', ko: '달이 예쁩니다.' } },
+        { kana: 'はる', kanji: '春', meaning: '봄', example: { jp: 'はるに はなが さきます。', ko: '봄에 꽃이 핍니다.' } },
+        { kana: 'なつ', kanji: '夏', meaning: '여름', example: { jp: 'なつは あついです。', ko: '여름은 덥습니다.' } },
+        { kana: 'あき', kanji: '秋', meaning: '가을', example: { jp: 'あきに もみじが あかくなります。', ko: '가을에 단풍이 붉어집니다.' } },
+        { kana: 'ふゆ', kanji: '冬', meaning: '겨울', example: { jp: 'ふゆは さむいです。', ko: '겨울은 춥습니다.' } },
+        { kana: 'ことし', kanji: '今年', meaning: '올해', example: { jp: 'ことしは たのしいです。', ko: '올해는 즐겁습니다.' } },
+        { kana: 'らいねん', kanji: '来年', meaning: '내년', example: { jp: 'らいねんも がんばります。', ko: '내년에도 열심히 합니다.' } },
+        { kana: 'きょねん', kanji: '去年', meaning: '작년', example: { jp: 'きょねんより せが のびました。', ko: '작년보다 키가 자랐습니다.' } },
+        { kana: 'まえ', kanji: '前', meaning: '전/앞', example: { jp: 'まえに すすみます。', ko: '앞으로 나아갑니다.' } },
+        { kana: 'あと', kanji: '後', meaning: '후/뒤', example: { jp: 'あとで あそびましょう。', ko: '나중에 놉시다.' } },
+        { kana: 'いつ', kanji: '', meaning: '언제', example: { jp: 'いつ きますか。', ko: '언제 옵니까?' } },
+        { kana: 'なんじ', kanji: '何時', meaning: '몇 시', example: { jp: 'いま なんじですか。', ko: '지금 몇 시예요?' } },
+        { kana: 'なんぷん', kanji: '何分', meaning: '몇 분', example: { jp: 'なんぷん かかりますか。', ko: '몇 분 걸려요?' } },
+        { kana: 'じかんわり', kanji: '時間割', meaning: '시간표', example: { jp: 'じかんわりを みます。', ko: '시간표를 봅니다.' } }
       ],
       dialogues: [
         {
@@ -480,7 +674,37 @@ html, body { overscroll-behavior: contain; }
         { kana: 'こうえん', kanji: '公園', meaning: '공원', example: { jp: 'こうえんで あそびます。', ko: '공원에서 놉니다.' } },
         { kana: 'みやげもの', kanji: '土産物', meaning: '기념품 가게', example: { jp: 'みやげものやに いきます。', ko: '기념품 가게에 갑니다.' } },
         { kana: 'たびする', kanji: '旅する', meaning: '여행하다', example: { jp: 'いっしょに たびしましょう。', ko: '같이 여행합시다.' } },
-        { kana: 'おもいで', kanji: '思い出', meaning: '추억', example: { jp: 'たのしい おもいでです。', ko: '즐거운 추억입니다.' } }
+        { kana: 'おもいで', kanji: '思い出', meaning: '추억', example: { jp: 'たのしい おもいでです。', ko: '즐거운 추억입니다.' } },
+        { kana: 'かんこう', kanji: '観光', meaning: '관광', example: { jp: 'とうきょうを かんこうします。', ko: '도쿄를 관광합니다.' } },
+        { kana: 'しんかんせん', kanji: '新幹線', meaning: '신칸센', example: { jp: 'しんかんせんに のります。', ko: '신칸센을 탑니다.' } },
+        { kana: 'ちかてつ', kanji: '地下鉄', meaning: '지하철', example: { jp: 'ちかてつで いきます。', ko: '지하철로 갑니다.' } },
+        { kana: 'タクシー', kanji: '', meaning: '택시', example: { jp: 'タクシーを よびます。', ko: '택시를 부릅니다.' } },
+        { kana: 'みぎ', kanji: '右', meaning: '오른쪽', example: { jp: 'みぎに まがってください。', ko: '오른쪽으로 도세요.' } },
+        { kana: 'ひだり', kanji: '左', meaning: '왼쪽', example: { jp: 'ひだりに まがります。', ko: '왼쪽으로 돕니다.' } },
+        { kana: 'まっすぐ', kanji: '', meaning: '곧장/직진', example: { jp: 'まっすぐ いきます。', ko: '곧장 갑니다.' } },
+        { kana: 'ちかい', kanji: '近い', meaning: '가깝다', example: { jp: 'えきが ちかいです。', ko: '역이 가깝습니다.' } },
+        { kana: 'とおい', kanji: '遠い', meaning: '멀다', example: { jp: 'くうこうは とおいです。', ko: '공항은 멉니다.' } },
+        { kana: 'いりぐち', kanji: '入口', meaning: '입구', example: { jp: 'いりぐちは どこですか。', ko: '입구는 어디예요?' } },
+        { kana: 'でぐち', kanji: '出口', meaning: '출구', example: { jp: 'でぐちを さがします。', ko: '출구를 찾습니다.' } },
+        { kana: 'ねだん', kanji: '値段', meaning: '가격', example: { jp: 'ねだんは いくらですか。', ko: '가격은 얼마예요?' } },
+        { kana: 'よやく', kanji: '予約', meaning: '예약', example: { jp: 'ホテルを よやくします。', ko: '호텔을 예약합니다.' } },
+        { kana: 'かわ', kanji: '川', meaning: '강', example: { jp: 'かわが きれいです。', ko: '강이 예쁩니다.' } },
+        { kana: 'もり', kanji: '森', meaning: '숲', example: { jp: 'もりを さんぽします。', ko: '숲을 산책합니다.' } },
+        { kana: 'そら', kanji: '空', meaning: '하늘', example: { jp: 'そらが あおいです。', ko: '하늘이 파랗습니다.' } },
+        { kana: 'ほし', kanji: '星', meaning: '별', example: { jp: 'よるに ほしが みえます。', ko: '밤에 별이 보입니다.' } },
+        { kana: 'たいよう', kanji: '太陽', meaning: '태양', example: { jp: 'たいようが まぶしいです。', ko: '태양이 눈부십니다.' } },
+        { kana: 'はな', kanji: '花', meaning: '꽃', example: { jp: 'はなが きれいに さいています。', ko: '꽃이 예쁘게 피어 있습니다.' } },
+        { kana: 'き', kanji: '木', meaning: '나무', example: { jp: 'おおきな きが あります。', ko: '큰 나무가 있습니다.' } },
+        { kana: 'ゆうひ', kanji: '夕日', meaning: '석양', example: { jp: 'ゆうひが きれいです。', ko: '석양이 예쁩니다.' } },
+        { kana: 'みせ', kanji: '店', meaning: '가게', example: { jp: 'みせで かいものします。', ko: '가게에서 쇼핑합니다.' } },
+        { kana: 'かいもの', kanji: '買い物', meaning: '쇼핑', example: { jp: 'かいものが たのしいです。', ko: '쇼핑이 즐겁습니다.' } },
+        { kana: 'バスてい', kanji: 'バス停', meaning: '버스 정류장', example: { jp: 'バスていで まちます。', ko: '버스 정류장에서 기다립니다.' } },
+        { kana: 'りょかん', kanji: '旅館', meaning: '료칸/여관', example: { jp: 'りょかんに とまります。', ko: '료칸에 묵습니다.' } },
+        { kana: 'かんこうち', kanji: '観光地', meaning: '관광지', example: { jp: 'かんこうちを まわります。', ko: '관광지를 둘러봅니다.' } },
+        { kana: 'あたたかい', kanji: '温かい', meaning: '따뜻하다', example: { jp: 'はるは あたたかいです。', ko: '봄은 따뜻합니다.' } },
+        { kana: 'すずしい', kanji: '涼しい', meaning: '시원하다', example: { jp: 'かぜが すずしいです。', ko: '바람이 시원합니다.' } },
+        { kana: 'さむい', kanji: '寒い', meaning: '춥다', example: { jp: 'ふゆは さむいです。', ko: '겨울은 춥습니다.' } },
+        { kana: 'あつい', kanji: '暑い', meaning: '덥다', example: { jp: 'なつは あついです。', ko: '여름은 덥습니다.' } }
       ],
       dialogues: [
         {
@@ -518,7 +742,37 @@ html, body { overscroll-behavior: contain; }
         { kana: 'あらう', kanji: '洗う', meaning: '씻다', example: { jp: 'やさいを あらいます。', ko: '채소를 씻습니다.' } },
         { kana: 'おちゃわん', kanji: 'お茶碗', meaning: '밥그릇', example: { jp: 'おちゃわんに ごはんを いれます。', ko: '밥그릇에 밥을 담습니다.' } },
         { kana: 'こおり', kanji: '氷', meaning: '얼음', example: { jp: 'こおりを いれます。', ko: '얼음을 넣습니다.' } },
-        { kana: 'あつい', kanji: '熱い', meaning: '뜨겁다', example: { jp: 'スープが あついです。', ko: '국이 뜨겁습니다.' } }
+        { kana: 'あつい', kanji: '熱い', meaning: '뜨겁다', example: { jp: 'スープが あついです。', ko: '국이 뜨겁습니다.' } },
+        { kana: 'わかす', kanji: '沸かす', meaning: '끓이다', example: { jp: 'おゆを わかします。', ko: '물을 끓입니다.' } },
+        { kana: 'あげる', kanji: '揚げる', meaning: '튀기다', example: { jp: 'てんぷらを あげます。', ko: '튀김을 튀깁니다.' } },
+        { kana: 'むす', kanji: '蒸す', meaning: '찌다', example: { jp: 'やさいを むします。', ko: '채소를 찝니다.' } },
+        { kana: 'いためる', kanji: '炒める', meaning: '볶다', example: { jp: 'たまねぎを いためます。', ko: '양파를 볶습니다.' } },
+        { kana: 'ゆでる', kanji: '茹でる', meaning: '데치다/삶다', example: { jp: 'たまごを ゆでます。', ko: '달걀을 삶습니다.' } },
+        { kana: 'みそ', kanji: '味噌', meaning: '된장', example: { jp: 'みそしるに みそを つかいます。', ko: '된장국에 된장을 사용합니다.' } },
+        { kana: 'こしょう', kanji: '胡椒', meaning: '후추', example: { jp: 'こしょうを すこし かけます。', ko: '후추를 조금 뿌립니다.' } },
+        { kana: 'バター', kanji: '', meaning: '버터', example: { jp: 'パンに バターを ぬります。', ko: '빵에 버터를 바릅니다.' } },
+        { kana: 'あぶら', kanji: '油', meaning: '기름', example: { jp: 'フライパンに あぶらを いれます。', ko: '프라이팬에 기름을 넣습니다.' } },
+        { kana: 'ざいりょう', kanji: '材料', meaning: '재료', example: { jp: 'ざいりょうを そろえます。', ko: '재료를 준비합니다.' } },
+        { kana: 'レシピ', kanji: '', meaning: '레시피', example: { jp: 'レシピを みます。', ko: '레시피를 봅니다.' } },
+        { kana: 'フォーク', kanji: '', meaning: '포크', example: { jp: 'フォークで たべます。', ko: '포크로 먹습니다.' } },
+        { kana: 'ふた', kanji: '蓋', meaning: '뚜껑', example: { jp: 'なべに ふたを します。', ko: '냄비에 뚜껑을 덮습니다.' } },
+        { kana: 'でんしレンジ', kanji: '電子レンジ', meaning: '전자레인지', example: { jp: 'でんしレンジで あたためます。', ko: '전자레인지로 데웁니다.' } },
+        { kana: 'れいぞうこ', kanji: '冷蔵庫', meaning: '냉장고', example: { jp: 'れいぞうこに いれます。', ko: '냉장고에 넣습니다.' } },
+        { kana: 'こむぎこ', kanji: '小麦粉', meaning: '밀가루', example: { jp: 'こむぎこを まぜます。', ko: '밀가루를 섞습니다.' } },
+        { kana: 'とうがらし', kanji: '唐辛子', meaning: '고추', example: { jp: 'とうがらしを いれます。', ko: '고추를 넣습니다.' } },
+        { kana: 'にんにく', kanji: '', meaning: '마늘', example: { jp: 'にんにくを きります。', ko: '마늘을 자릅니다.' } },
+        { kana: 'しょうが', kanji: '生姜', meaning: '생강', example: { jp: 'しょうがを すりおろします。', ko: '생강을 갈아 넣습니다.' } },
+        { kana: 'ひ', kanji: '火', meaning: '불', example: { jp: 'よわい ひで にます。', ko: '약한 불로 끓입니다.' } },
+        { kana: 'りょう', kanji: '量', meaning: '양(분량)', example: { jp: 'てきとうな りょうを いれます。', ko: '적당한 양을 넣습니다.' } },
+        { kana: 'スープ', kanji: '', meaning: '수프/국', example: { jp: 'スープが あついです。', ko: '수프가 뜨겁습니다.' } },
+        { kana: 'ソース', kanji: '', meaning: '소스', example: { jp: 'ソースを かけます。', ko: '소스를 뿌립니다.' } },
+        { kana: 'だし', kanji: 'だし', meaning: '다시(육수)', example: { jp: 'だしを とります。', ko: '육수를 냅니다.' } },
+        { kana: 'みりん', kanji: 'みりん', meaning: '미림', example: { jp: 'みりんを すこし いれます。', ko: '미림을 조금 넣습니다.' } },
+        { kana: 'かおり', kanji: '香り', meaning: '향기', example: { jp: 'いい かおりが します。', ko: '좋은 향기가 납니다.' } },
+        { kana: 'やわらかい', kanji: '軟らかい', meaning: '부드럽다', example: { jp: 'にくが やわらかいです。', ko: '고기가 부드럽습니다.' } },
+        { kana: 'かたい', kanji: '固い', meaning: '딱딱하다', example: { jp: 'パンが かたいです。', ko: '빵이 딱딱합니다.' } },
+        { kana: 'つめたい', kanji: '冷たい', meaning: '차갑다', example: { jp: 'みずが つめたいです。', ko: '물이 차갑습니다.' } },
+        { kana: 'ちょうみりょう', kanji: '調味料', meaning: '조미료', example: { jp: 'ちょうみりょうを まぜます。', ko: '조미료를 섞습니다.' } }
       ],
       dialogues: [
         {
@@ -814,8 +1068,25 @@ window.JL.modes = window.JL.modes || {};
 window.JL.modes.flashcard = (function () {
   let state = { topic: null, idx: 0, flipped: false };
 
+  function saveIdx(topicId, idx) {
+    try {
+      const raw = localStorage.getItem('jp.fcpos') || '{}';
+      const pos = JSON.parse(raw);
+      pos[topicId] = idx;
+      localStorage.setItem('jp.fcpos', JSON.stringify(pos));
+    } catch (e) {}
+  }
+
+  function loadIdx(topicId) {
+    try {
+      const raw = localStorage.getItem('jp.fcpos') || '{}';
+      return JSON.parse(raw)[topicId] || 0;
+    } catch (e) { return 0; }
+  }
+
   function mount(root, topic) {
-    state = { topic, idx: 0, flipped: false };
+    const savedIdx = loadIdx(topic.id);
+    state = { topic, idx: Math.min(savedIdx, topic.words.length - 1), flipped: false };
     render(root);
   }
 
@@ -841,7 +1112,10 @@ window.JL.modes.flashcard = (function () {
       </div>
     `;
 
-    document.getElementById('back').addEventListener('click', () => window.JL.router.renderMain());
+    document.getElementById('back').addEventListener('click', () => {
+      saveIdx(state.topic.id, state.idx);
+      window.JL.router.renderMain();
+    });
 
     document.getElementById('card').addEventListener('click', e => {
       if (e.target.closest('.speak-btn')) return;
@@ -868,6 +1142,7 @@ window.JL.modes.flashcard = (function () {
       window.JL.storage.bumpStat('flashcardsViewed');
       state.idx = (state.idx + 1) % total;
       state.flipped = false;
+      saveIdx(state.topic.id, state.idx);
       render(root);
     });
   }
