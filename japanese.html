@@ -1007,14 +1007,19 @@ window.JL.router = (function () {
     const progress = window.JL.storage.loadProgress();
     const u = window.JL.utils;
 
+    let fcPos = {};
+    try { fcPos = JSON.parse(localStorage.getItem('jp.fcpos') || '{}'); } catch(e) {}
+
     const topicCards = DATA.topics.map(t => {
       const p = window.JL.storage.getTopicProgress(t.id, t.words);
       const pct = p.total > 0 ? Math.round((p.mastered / p.total) * 100) : 0;
       const activeClass = t.id === currentTopic ? ' active' : '';
+      const cardIdx = fcPos[t.id] || 0;
+      const fcText = cardIdx > 0 ? ` · ${cardIdx + 1}번까지 봄` : '';
       return `
         <div class="topic-card${activeClass}" data-topic="${u.escapeHtml(t.id)}">
           <div class="name">${u.escapeHtml(t.name)}</div>
-          <div class="progress-text">${p.mastered} / ${p.total} 마스터</div>
+          <div class="progress-text">${p.mastered} / ${p.total} 마스터${fcText}</div>
           <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
         </div>
       `;
