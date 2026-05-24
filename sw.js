@@ -1,4 +1,4 @@
-const CACHE = 'jp-learn-v11';
+const CACHE = 'jp-learn-v12';
 const FILES = [
   './japanese.html',
   './manifest.json',
