@@ -220,12 +220,21 @@ html, body { overscroll-behavior: contain; }
 .topic-card:hover { border-color: var(--accent); }
 .topic-card.active { border-color: var(--accent); background: #fff; box-shadow: var(--shadow); }
 .topic-card .name { font-size: 16px; font-weight: 600; margin-bottom: 6px; }
-.topic-card .progress-text { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+.topic-card .progress-text { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
 .topic-card .progress-bar {
-  width: 100%; height: 6px; background: #e5e5e5; border-radius: 3px; overflow: hidden;
+  width: 100%; height: 5px; background: #e5e5e5; border-radius: 3px; overflow: hidden; margin-bottom: 4px;
 }
 .topic-card .progress-fill {
+  height: 100%; background: var(--success); transition: width .3s;
+}
+.topic-card .fc-bar {
+  width: 100%; height: 5px; background: #e5e5e5; border-radius: 3px; overflow: hidden;
+}
+.topic-card .fc-fill {
   height: 100%; background: var(--accent); transition: width .3s;
+}
+.topic-card .bar-labels {
+  display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-bottom: 3px;
 }
 
 @media (max-width: 700px) {
@@ -1015,11 +1024,13 @@ window.JL.router = (function () {
       const pct = p.total > 0 ? Math.round((p.mastered / p.total) * 100) : 0;
       const activeClass = t.id === currentTopic ? ' active' : '';
       const cardIdx = fcPos[t.id] || 0;
-      const fcText = cardIdx > 0 ? ` · ${cardIdx + 1}번까지 봄` : '';
+      const fcSeen = cardIdx > 0 ? cardIdx + 1 : 0;
+      const fcPct = p.total > 0 ? Math.round((fcSeen / p.total) * 100) : 0;
       return `
         <div class="topic-card${activeClass}" data-topic="${u.escapeHtml(t.id)}">
           <div class="name">${u.escapeHtml(t.name)}</div>
-          <div class="progress-text">${p.mastered} / ${p.total} 마스터${fcText}</div>
+          <div class="bar-labels"><span>카드 ${fcSeen}/${p.total}</span><span>마스터 ${p.mastered}/${p.total}</span></div>
+          <div class="fc-bar"><div class="fc-fill" style="width:${fcPct}%"></div></div>
           <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
         </div>
       `;
@@ -1153,11 +1164,16 @@ window.JL.modes.flashcard = (function () {
   }
 
   function renderFront(w, u) {
-    const kanjiLine = w.kanji ? `<div class="kanji">${u.escapeHtml(w.kanji)}</div>` : '';
+    if (w.kanji) {
+      return `
+        <div class="kana jp-text" style="font-size:22px;color:var(--muted);font-weight:400;">${u.escapeHtml(w.kana)}</div>
+        <div class="kanji jp-text" style="font-size:72px;font-weight:600;color:var(--fg);">${u.escapeHtml(w.kanji)}</div>
+        <button class="speak-btn" data-text="${u.escapeHtml(w.kana)}" aria-label="발음 듣기">♪</button>
+      `;
+    }
     return `
-      ${kanjiLine}
       <div class="kana jp-text">${u.escapeHtml(w.kana)}</div>
-      <button class="speak-btn" data-text="${u.escapeHtml(w.kana)}" aria-label="발음 듣기">🔊</button>
+      <button class="speak-btn" data-text="${u.escapeHtml(w.kana)}" aria-label="발음 듣기">♪</button>
     `;
   }
 
@@ -1179,7 +1195,7 @@ window.JL.modes.flashcard = (function () {
     window.JL = window.JL || {};
 window.JL.modes = window.JL.modes || {};
 window.JL.modes.quiz = (function () {
-  const QUESTION_COUNT = 10;
+  const QUESTION_COUNT = 50;
   let state = null;
 
   function buildQuestions(topic) {
