@@ -3021,7 +3021,7 @@ window.JL.router = (function () {
           <div class="desc">단어와 예문을 카드로 익히기</div>
         </div>
         <div class="mode-card" data-mode="quiz">
-          <div class="label">점검</div>
+          <div class="label">퀴즈</div>
           <div class="desc">사지선다 25문제</div>
         </div>
         <div class="mode-card" data-mode="conversation">
@@ -3032,7 +3032,7 @@ window.JL.router = (function () {
 
       <div class="stats">
         <div class="stat">학습한 카드 <strong>${progress.flashcardsViewed}</strong></div>
-        <div class="stat">점검 최고점 <strong>${progress.quizHighScore}</strong></div>
+        <div class="stat">퀴즈 최고점 <strong>${progress.quizHighScore}</strong></div>
         <div class="stat">마지막 학습 <strong>${progress.lastStudied || '-'}</strong></div>
       </div>
     `;
@@ -3390,7 +3390,7 @@ window.JL.modes.quiz = (function () {
     root.innerHTML = `
       <span class="back-link" id="back">← 메인으로</span>
       <div class="quiz-result">
-        <div class="label">${state.topic.name} 점검 결과</div>
+        <div class="label">${state.topic.name} 퀴즈 결과</div>
         <div class="score">${state.score} / ${max}</div>
         <div class="label">${newRecord ? '🎉 최고점 갱신!' : '잘 했어요!'}</div>
         <div class="actions">
