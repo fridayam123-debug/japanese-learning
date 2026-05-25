@@ -1,4 +1,4 @@
-const CACHE = 'jp-learn-v15';
+const CACHE = 'jp-learn-v16';
 const STATIC = ['./manifest.json', './icon.svg'];
 
 self.addEventListener('install', e => {

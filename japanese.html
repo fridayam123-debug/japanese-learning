@@ -3214,20 +3214,20 @@ window.JL.modes.flashcard = (function () {
     window.JL = window.JL || {};
 window.JL.modes = window.JL.modes || {};
 window.JL.modes.quiz = (function () {
-  const QUESTION_COUNT = 25;
+  const SET_SIZE = 25;
   let state = null;
+  let currentTopic = null;
 
-  function buildQuestions(topic) {
-    const words = topic.words;
+  function getSetWords(topic, setNum) {
+    return topic.words.slice(setNum * SET_SIZE, (setNum + 1) * SET_SIZE);
+  }
+
+  function buildQuestions(topic, words) {
     if (words.length === 0) return [];
     const u = window.JL.utils;
     const storage = window.JL.storage;
 
-    // Sort words into priority pools by mastery state
-    const wrongs = [];
-    const news = [];
-    const learnings = [];
-    const masters = [];
+    const wrongs = [], news = [], learnings = [], masters = [];
     for (const w of words) {
       const status = storage ? storage.getMasteryStatus(topic.id, w.kana) : 'new';
       const stat = storage ? (storage.loadProgress().wordStats || {})[topic.id + ':' + w.kana] : null;
@@ -3237,9 +3237,8 @@ window.JL.modes.quiz = (function () {
       else masters.push(w);
     }
 
-    // Build target list: wrongs first, then news, then learnings, then masters as filler
     const ordered = [...u.shuffle(wrongs), ...u.shuffle(news), ...u.shuffle(learnings), ...u.shuffle(masters)];
-    const targets = ordered.slice(0, Math.min(QUESTION_COUNT, words.length));
+    const targets = ordered.slice(0, words.length);
 
     return targets.map(answer => {
       const wrongPool = words.filter(w => w.meaning !== answer.meaning);
@@ -3259,13 +3258,50 @@ window.JL.modes.quiz = (function () {
   }
 
   function mount(root, topic) {
+    currentTopic = topic;
+    renderSetPicker(root);
+  }
+
+  function renderSetPicker(root) {
+    const t = currentTopic;
+    const u = window.JL.utils;
+    const numSets = Math.ceil(t.words.length / SET_SIZE);
+
+    const setCards = Array.from({ length: numSets }, (_, s) => {
+      const from = s * SET_SIZE + 1;
+      const to = Math.min((s + 1) * SET_SIZE, t.words.length);
+      return `
+        <div class="set-card" data-set="${s}">
+          <div class="set-num">세트 ${s + 1}</div>
+          <div class="set-range">${from} ~ ${to}번 단어</div>
+          <div class="set-seen">${to - from + 1}문제</div>
+        </div>
+      `;
+    }).join('');
+
+    root.innerHTML = `
+      <span class="back-link" id="back">← 메인으로</span>
+      <div class="flashcard-screen">
+        <div class="topic-name jp-text" style="font-size:28px;font-weight:700;">${u.escapeHtml(t.nameJp || t.name)}</div>
+        <div class="topic-name" style="font-size:14px;color:var(--muted);margin-top:-8px;">${u.escapeHtml(t.name)} 퀴즈</div>
+        <div class="set-grid">${setCards}</div>
+      </div>
+    `;
+    document.getElementById('back').addEventListener('click', () => window.JL.router.renderMain());
+    root.querySelectorAll('.set-card').forEach(el => {
+      el.addEventListener('click', () => enterSet(root, parseInt(el.dataset.set)));
+    });
+  }
+
+  function enterSet(root, setNum) {
+    const words = getSetWords(currentTopic, setNum);
     state = {
-      topic,
-      questions: buildQuestions(topic),
+      topic: currentTopic,
+      setNum,
+      questions: buildQuestions(currentTopic, words),
       idx: 0,
       score: 0,
       finished: false,
-      lastResult: null,
       locked: false,
       pendingTimeout: null,
       cancelled: false,
@@ -3304,10 +3340,10 @@ window.JL.modes.quiz = (function () {
     }).join('');
 
     root.innerHTML = `
-      <span class="back-link" id="back">← 메인으로</span>
+      <span class="back-link" id="back">← 세트 선택</span>
       <div class="quiz-screen">
         <div class="quiz-progress">
-          <div>${state.idx + 1} / ${total}</div>
+          <div>세트 ${state.setNum + 1} · ${state.idx + 1} / ${total}</div>
           <div>점수: ${state.score}</div>
         </div>
         <div class="quiz-question">
@@ -3329,7 +3365,7 @@ window.JL.modes.quiz = (function () {
     document.getElementById('back').addEventListener('click', () => {
       if (state.pendingTimeout) { clearTimeout(state.pendingTimeout); state.pendingTimeout = null; }
       state.cancelled = true;
-      window.JL.router.renderMain();
+      renderSetPicker(root);
     });
 
     root.querySelectorAll('.quiz-choice').forEach(btn => {
@@ -3388,7 +3424,7 @@ window.JL.modes.quiz = (function () {
     const newRecord = state.score > (state.previousHighScore || 0);
 
     root.innerHTML = `
-      <span class="back-link" id="back">← 메인으로</span>
+      <span class="back-link" id="back">← 세트 선택</span>
       <div class="quiz-result">
         <div class="label">${state.topic.name} 퀴즈 결과</div>
         <div class="score">${state.score} / ${max}</div>
@@ -3400,12 +3436,8 @@ window.JL.modes.quiz = (function () {
       </div>
     `;
 
-    document.getElementById('back').addEventListener('click', () => {
-      if (state.pendingTimeout) { clearTimeout(state.pendingTimeout); state.pendingTimeout = null; }
-      state.cancelled = true;
-      window.JL.router.renderMain();
-    });
-    document.getElementById('again').addEventListener('click', () => mount(root, state.topic));
+    document.getElementById('back').addEventListener('click', () => renderSetPicker(root));
+    document.getElementById('again').addEventListener('click', () => enterSet(root, state.setNum));
     document.getElementById('home').addEventListener('click', () => window.JL.router.renderMain());
   }
 
